@@ -1,0 +1,1361 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PulseDesk</title>
+<style>
+:root{
+  --bg:#f3f5fa; --panel:#fff; --ink:#0f172a; --ink2:#334155; --muted:#64748b; --faint:#94a3b8; --line:#e4e8f0;
+  --side:#0b1730; --side2:#13244a; --accent:#2563eb; --accent-soft:#e8efff;
+  --ok:#16a34a; --ok-soft:#e7f7ec; --warn:#d97706; --warn-soft:#fff4e0; --crit:#ea580c; --crit-soft:#ffede3;
+  --bad:#dc2626; --bad-soft:#fde8e8; --purple:#7c3aed; --purple-soft:#f1eaff; --gray-soft:#eef1f6;
+  --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.05),0 4px 14px rgba(15,23,42,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","PingFang TC",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;display:flex;overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent);text-decoration:none}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- sidebar ---------- */
+.side{width:232px;flex:none;background:var(--side);color:#cbd5e1;display:flex;flex-direction:column;padding:18px 12px}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 22px}
+.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:grid;place-items:center}
+.brand b{display:block;color:#fff;font-size:18px;letter-spacing:.2px}
+.brand small{font-size:10px;letter-spacing:2px;color:#7f93b8}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:#cbd5e1;padding:11px 12px;border-radius:10px;font-weight:600;text-align:left;margin-bottom:4px}
+.nav button:hover{background:rgba(255,255,255,.06)}
+.nav button.on{background:var(--side2);color:#fff}
+.nav svg{width:18px;height:18px;flex:none;opacity:.9}
+.nav .badge{margin-left:auto;background:#334a78;color:#fff;border-radius:20px;padding:1px 8px;font-size:12px;min-width:24px;text-align:center}
+.nav .badge.hot{background:var(--bad)}
+.nav .badge:empty{display:none}
+.side-foot{margin-top:auto;border-top:1px solid rgba(255,255,255,.08);padding:14px 8px 0;font-size:12px;color:#8ea0c2}
+.conn{display:flex;align-items:center;gap:8px;color:#e2e8f0;font-weight:600;font-size:13px;margin-bottom:4px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
+.dot.ok{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+.dot.warn{background:#f59e0b}.dot.bad{background:#ef4444}
+.quit{margin-top:12px;width:100%;background:none;border:1px solid rgba(255,255,255,.14);color:#cbd5e1;border-radius:8px;padding:7px}
+.quit:hover{background:rgba(255,255,255,.06)}
+
+/* ---------- main ---------- */
+main{flex:1;overflow-y:auto;padding:22px 28px 60px}
+.top{display:flex;align-items:flex-end;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+h1{margin:4px 0 0;font-size:26px;letter-spacing:-.3px}
+.sub{color:var(--muted);margin-top:2px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.clock{font-size:22px;font-weight:700;margin-right:6px}
+.upd{color:var(--muted);font-size:12px;margin-right:6px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:#c8d0de;background:#fafbfd}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#1d4ed8}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:8px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ok{color:var(--ok);border-color:#bfe6cb}.btn.ok:hover{background:var(--ok-soft)}
+.btn.danger{color:var(--bad);border-color:#f3c1c1}
+.btn:disabled{opacity:.5;cursor:default}
+.icon-btn{width:38px;height:38px;justify-content:center;padding:0}
+
+.banner{border-radius:12px;padding:11px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;border:1px solid}
+.banner.warn{background:var(--warn-soft);border-color:#f6d49a;color:#7c4a03}
+.banner.bad{background:var(--bad-soft);border-color:#f3b4b4;color:#8a1c1c}
+.banner.info{background:var(--accent-soft);border-color:#c7d7fb;color:#1e3a8a}
+.banner .btn{margin-left:auto}
+
+.page{display:none}.page.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;gap:12px;margin:24px 0 12px;flex-wrap:wrap}
+.sec-h h2{font-size:17px;margin:0}
+.sec-h .hint{color:var(--muted);font-size:12.5px}
+.legend{margin-left:auto;display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{padding:14px 16px;border-top:3px solid var(--line);position:relative}
+.kpi .l{font-size:13px;color:var(--ink2);font-weight:600}
+.kpi .v{font-size:30px;font-weight:750;margin:6px 0 2px;letter-spacing:-.5px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.kpi.t-blue{border-top-color:var(--accent)}.kpi.t-warn{border-top-color:var(--warn)}.kpi.t-bad{border-top-color:var(--bad)}
+.kpi.t-ok{border-top-color:var(--ok)}.kpi.t-purple{border-top-color:var(--purple)}.kpi.t-gray{border-top-color:#94a3b8}
+.kpi.alarm{background:var(--bad-soft)}
+.kpi.alarm .v{color:var(--bad)}
+.meter{height:6px;background:var(--gray-soft);border-radius:4px;margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:4px}
+
+/* countdown cards */
+.cd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.cd{display:flex;gap:14px;padding:14px;cursor:pointer;border-left:5px solid var(--ok);transition:transform .1s}
+.cd:hover{transform:translateY(-1px)}
+.cd.l1{border-left-color:var(--warn);background:linear-gradient(90deg,var(--warn-soft),#fff 55%)}
+.cd.l2{border-left-color:var(--crit);background:linear-gradient(90deg,var(--crit-soft),#fff 55%)}
+.cd.l3{border-left-color:var(--bad);background:linear-gradient(90deg,var(--bad-soft),#fff 60%);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 4px rgba(220,38,38,.18)}}
+.ring{width:92px;height:92px;flex:none;position:relative}
+.ring svg{width:92px;height:92px;transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring b{font-size:21px;font-weight:750;letter-spacing:-.5px}
+.ring small{font-size:10.5px;color:var(--muted)}
+.cd-info{min-width:0;flex:1;display:flex;flex-direction:column}
+.tid{font-weight:700;color:var(--accent);font-size:13px;display:flex;align-items:center;gap:6px}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;background:var(--gray-soft);color:var(--ink2);white-space:nowrap}
+.pill.l0{background:var(--ok-soft);color:var(--ok)}.pill.l1{background:var(--warn-soft);color:var(--warn)}
+.pill.l2{background:var(--crit-soft);color:var(--crit)}.pill.l3{background:var(--bad);color:#fff}
+.pill.purple{background:var(--purple-soft);color:var(--purple)}.pill.blue{background:var(--accent-soft);color:var(--accent)}
+.pill.green{background:var(--ok-soft);color:var(--ok)}.pill.red{background:var(--bad-soft);color:var(--bad)}
+.pill.amber{background:var(--warn-soft);color:var(--warn)}
+.cust{font-weight:650;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subj{color:var(--ink2);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
+.meta{color:var(--muted);font-size:12px;margin-top:4px}
+.acts{display:flex;gap:6px;margin-top:auto;padding-top:10px;flex-wrap:wrap}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-size:17px;color:var(--ok);margin-bottom:4px}
+
+/* kanban */
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+.col{background:#e9edf5;border-radius:var(--radius);padding:10px;min-height:160px;border:2px dashed transparent}
+.col.over{border-color:var(--accent);background:var(--accent-soft)}
+.col-h{display:flex;align-items:center;gap:8px;font-weight:700;padding:2px 4px 10px}
+.col-h .n{background:#fff;border-radius:20px;padding:0 9px;font-size:12px}
+.col-h i{width:10px;height:10px;border-radius:50%}
+.kc{background:#fff;border-radius:10px;padding:10px 11px;margin-bottom:8px;border:1px solid var(--line);cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.kc:hover{border-color:#b9c6dd}
+.kc.dragging{opacity:.4}
+.kc.over-due{border-left:4px solid var(--bad)}
+.kc .row1{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px}
+.kc .row1 .tid{font-size:12px}
+.kc .t{font-weight:600;margin:4px 0 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
+.kc .c2{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kc .foot{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.av{width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-size:11px;font-weight:700;flex:none}
+.who{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600}
+.qa{width:100%;margin-top:8px;border:1px solid #d6c7fb;background:var(--purple-soft);border-radius:8px;padding:6px 8px;color:var(--purple);font-weight:600}
+.more{display:block;text-align:center;font-size:12px;color:var(--muted);padding:4px}
+
+/* table */
+.toolbar{display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.inp{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;min-width:0}
+.inp:focus{outline:2px solid #bfd3fe;border-color:var(--accent)}
+.search{flex:1;min-width:220px}
+table{width:100%;border-collapse:collapse}
+th{font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;background:#fafbfd}
+th.sorted::after{content:" ▾"}th.sorted.asc::after{content:" ▴"}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:#f8faff}
+td .tid{font-size:12.5px}
+td.sm{font-size:12.5px;color:var(--ink2);white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+.count-line{padding:10px 14px;color:var(--muted);font-size:12.5px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.2s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:#fff;z-index:21;transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(15,23,42,.15)}
+.drawer.on{transform:none}
+.dr-h{padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.dr-h h3{margin:4px 0 0;font-size:18px;line-height:1.35}
+.dr-b{padding:16px 20px 40px;overflow-y:auto;flex:1}
+.blk{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.blk h4{margin:0 0 10px;font-size:13px;color:var(--muted);letter-spacing:.5px}
+.sla-big{display:flex;align-items:center;gap:14px}
+.sla-big .v{font-size:28px;font-weight:750}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:13px;margin-top:10px}
+.kv span:nth-child(odd){color:var(--muted)}
+.seg{display:flex;background:var(--gray-soft);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;border-radius:8px;padding:7px;font-weight:600;color:var(--ink2)}
+.seg button.on{background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.12);color:var(--ink)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+textarea.inp{width:100%;min-height:80px;resize:vertical}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.tl li:last-child{border:0}
+.tl .tm{color:var(--muted);width:92px;flex:none;font-size:12px;padding-top:1px}
+.tl .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:11px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2)}
+
+/* stats */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.chart{padding:16px}
+.chart h3{margin:0 0 2px;font-size:15px}
+.chart .hint{color:var(--muted);font-size:12px;margin-bottom:10px}
+.chart svg{width:100%;height:auto;display:block}
+.hbar{display:grid;grid-template-columns:90px 1fr 60px;gap:8px;align-items:center;margin:8px 0;font-size:13px}
+.hbar .track{height:14px;background:var(--gray-soft);border-radius:4px;display:flex;overflow:hidden}
+.hbar .track i{display:block;height:100%}
+
+/* health & settings */
+.hgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.hcard{padding:16px}
+.hcard .l{color:var(--muted);font-size:12.5px;font-weight:600}
+.hcard .v{font-size:20px;font-weight:700;margin-top:6px;display:flex;align-items:center;gap:8px}
+.hcard .s{font-size:12.5px;color:var(--muted);margin-top:4px;word-break:break-all}
+.mono{font-family:Consolas,"Cascadia Mono",monospace;font-size:12.5px}
+.rules{padding:16px 18px;line-height:1.7;color:var(--ink2)}
+.rules code{background:var(--gray-soft);border-radius:5px;padding:1px 6px;font-size:12.5px}
+.form{padding:18px 20px}
+.form h3{margin:0 0 4px;font-size:16px}
+.form .hint{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.fld label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}
+.fld .inp{width:100%}
+.fld small{color:var(--muted);font-size:12px}
+.col-row{display:grid;grid-template-columns:1fr 1.2fr 1.2fr auto;gap:8px;margin-bottom:8px;align-items:start}
+.col-row textarea.inp{min-height:38px;height:38px;resize:vertical;font-size:13px}
+.col-head{display:grid;grid-template-columns:1fr 1.2fr 1.2fr auto;gap:8px;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.col-row .dup{grid-column:1 / -1;margin-top:-4px}
+.sig-test{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:10px}
+.sig-res{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--gray-soft);font-size:13px}
+.save-bar{position:sticky;bottom:0;padding:12px 0;background:linear-gradient(transparent,var(--bg) 30%);display:flex;justify-content:flex-end;gap:8px}
+
+/* outlook categories */
+.cat-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 12px;font-weight:600;font-size:13px}
+.cchip.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.cchip .sw{width:12px;height:12px;border-radius:3px}
+.cchip .n{color:var(--muted);font-weight:500}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;align-items:start}
+.cat-panel{overflow:hidden}
+.cat-h{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:700}
+.cat-h .sw{width:14px;height:14px;border-radius:4px;flex:none}
+.cat-h .n{margin-left:auto;background:var(--gray-soft);border-radius:20px;padding:1px 9px;font-size:12px}
+.cat-body{max-height:480px;overflow-y:auto}
+.ci{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
+.ci:last-child{border-bottom:0}
+.ci:hover{background:#f8faff}
+.ci .bar{width:4px;align-self:stretch;border-radius:3px;flex:none}
+.ci .main{min-width:0;flex:1}
+.ci .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci.unread .s{font-weight:700}
+.ci .m{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ci .age{font-size:12px;font-weight:700;white-space:nowrap;padding-top:2px}
+.age.a1{color:var(--warn)}.age.a2{color:var(--bad)}.age.a0{color:var(--muted)}
+.mini-cat{display:inline-flex;align-items:center;gap:4px;font-size:11px;border-radius:20px;padding:1px 7px;background:var(--gray-soft);color:var(--ink2);white-space:nowrap}
+.mini-cat i{width:8px;height:8px;border-radius:2px}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:30;display:grid;place-items:center;padding:16px}
+.modal{background:#fff;border-radius:16px;width:min(520px,100%);max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(15,23,42,.3)}
+.modal-h{padding:18px 20px 6px;font-size:17px;font-weight:700}
+.modal-b{padding:6px 20px 12px}
+.modal-f{padding:12px 20px 18px;display:flex;justify-content:flex-end;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;cursor:pointer}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt input{margin-top:3px}
+.opt small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.pick-list{max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.pick-list label{display:flex;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}
+.pick-list label:last-child{border-bottom:0}
+.pick-list label:hover{background:#f8faff}
+
+/* toasts */
+.toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:40;max-width:380px}
+.toast{background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;gap:10px;align-items:flex-start;animation:tin .25s ease}
+.toast.bad{background:#b91c1c}.toast.warn{background:#b45309}.toast.ok{background:#15803d}
+.toast b{display:block}
+.toast button{margin-left:auto;background:none;border:0;color:#fff;opacity:.7;font-size:16px;line-height:1}
+@keyframes tin{from{transform:translateY(10px);opacity:0}}
+
+@media (max-width:1250px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kanban{grid-template-columns:repeat(2,minmax(0,1fr))}.hgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.side{width:66px;padding:14px 8px}.brand div,.nav span,.side-foot .txt,.nav .badge{display:none}.grid2{grid-template-columns:1fr}main{padding:16px}}
+</style>
+</head>
+<body>
+
+<aside class="side">
+  <div class="brand">
+    <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M5 20V10M10 20V4M15 20v-7M20 20V8"/></svg></div>
+    <div><b>PulseDesk</b><small>SLA CONTROL</small></div>
+  </div>
+  <nav class="nav">
+    <button data-page="board" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span>即時看板</span><em class="badge hot" id="b-board"></em></button>
+    <button data-page="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>全部工單</span><em class="badge" id="b-list"></em></button>
+    <button data-page="cats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span>Outlook 分類</span><em class="badge" id="b-cats"></em></button>
+    <button data-page="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>統計</span></button>
+    <button data-page="health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>系統狀態</span><em class="badge hot" id="b-health"></em></button>
+    <button data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>設定</span></button>
+  </nav>
+  <div class="side-foot">
+    <div class="conn"><span class="dot" id="connDot"></span><span class="txt" id="connTxt">連接中…</span></div>
+    <div class="txt" id="connSub">Outlook Classic</div>
+    <button class="quit txt" id="quitBtn" title="停止背景監控並關閉程式">結束程式</button>
+  </div>
+</aside>
+
+<main id="main">
+  <header class="top">
+    <div>
+      <div class="eyebrow" id="eyebrow">Live operations · 即時監控</div>
+      <h1 id="pageTitle">現在需要處理甚麼？</h1>
+      <div class="sub" id="pageSub">客戶郵件須在 15 分鐘內首次回覆，然後分派同事跟進</div>
+    </div>
+    <div class="top-actions">
+      <span class="clock num" id="clock">--:--</span>
+      <span class="upd" id="upd"></span>
+      <button class="btn icon-btn" id="notifBtn" title="啟用桌面通知">🔔</button>
+      <button class="btn icon-btn" id="muteBtn" title="提示聲">🔊</button>
+      <button class="btn primary" id="syncBtn" title="只讀取上次掃描之後的新郵件，通常 1 秒內完成">⟳ 立即同步</button>
+    </div>
+  </header>
+  <div id="banners"></div>
+
+  <section class="page on" id="page-board"></section>
+  <section class="page" id="page-list"></section>
+  <section class="page" id="page-cats"></section>
+  <section class="page" id="page-stats"></section>
+  <section class="page" id="page-health"></section>
+  <section class="page" id="page-settings"></section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+<div class="toasts" id="toasts"></div>
+
+<script>
+"use strict";
+/* ================= 狀態 ================= */
+const S = {
+  data:null, offset:0, page:"board", connected:null, drawerId:null, timeline:null,
+  alerted:{}, firstLoad:true, levelsSig:"", mute:false,
+  list:{q:"", phase:"all", who:"all", range:"7", sort:"start", asc:false},
+  cats:{q:"", only:"", flagged:false, sort:"old"},
+};
+try{ S.mute = localStorage.getItem("pd-mute")==="1"; }catch(e){}
+
+const PAGES = {
+  board:["Live operations · 即時監控","現在需要處理甚麼？","客戶郵件須在時限內首次回覆，然後分派同事跟進"],
+  list:["Tickets","全部工單","搜尋、篩選及匯出所有客戶請求及 Freshdesk 工單"],
+  cats:["Outlook categories","Outlook 分類","你在 Outlook 手動分類的郵件，按分類列出方便跟進"],
+  stats:["Performance","統計","首次回覆達標率、回覆時間及同事工作量"],
+  health:["System","系統狀態","Outlook 連線、即時偵測、最近識別的郵件及偵測規則"],
+  settings:["Settings","設定","SLA 時限、郵件偵測規則、同事名單及提醒"],
+};
+const PHASE = {
+  reply:["待首次回覆","l2"], assign:["待分派","purple"], progress:["跟進中","blue"], waiting:["等待客戶","amber"],
+  resolved:["已解決","green"], unverified:["需確認","l1"], ignored:["已忽略",""],
+  old:["未分派（已過時限）",""], closed:["已處理（不需分派）","green"],
+};
+const LEVEL_TXT = ["正常","警告","緊急","已超時"];
+const KIND = {
+  customer_new:["客戶來信","✉","#e8efff","#2563eb"], new_ticket:["Freshdesk 建立工單","＋","#f1eaff","#7c3aed"],
+  ack:["Ticket Received 自動回覆","↩","#eef1f6","#64748b"], agent_reply:["同事回覆客戶","✓","#e7f7ec","#16a34a"],
+  customer_reply:["客戶再回覆","✉","#fff4e0","#d97706"], direct_reply:["同事直接用 Outlook 回覆","✓","#e7f7ec","#16a34a"],
+};
+const AV_COLORS = ["#2563eb","#7c3aed","#0891b2","#db2777","#059669","#ea580c","#4f46e5","#0d9488"];
+
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ts = s => s ? new Date(s).getTime() : null;
+const nowMs = () => Date.now() + S.offset;
+const pad = n => String(n).padStart(2,"0");
+const hm = ms => { const d=new Date(ms); return pad(d.getHours())+":"+pad(d.getMinutes()); };
+const md = ms => { const d=new Date(ms); return (d.getMonth()+1)+"/"+d.getDate(); };
+const whenTxt = ms => ms==null ? "—" : (isToday(ms) ? hm(ms) : md(ms)+" "+hm(ms));
+const mmss = sec => { sec=Math.max(0,Math.floor(sec)); return pad(Math.floor(sec/60))+":"+pad(sec%60); };
+const durTxt = min => { if(min==null) return "—"; min=Math.max(0,min);
+  if(min<1) return "少於 1 分鐘"; if(min<60) return Math.round(min)+" 分鐘";
+  if(min<1440) return Math.floor(min/60)+" 小時 "+Math.round(min%60)+" 分"; return Math.floor(min/1440)+" 日 "+Math.floor((min%1440)/60)+" 小時"; };
+const dayKey = ms => { const d=new Date(ms); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); };
+const isToday = ms => ms!=null && dayKey(ms)===dayKey(nowMs());
+const cfg = () => S.data ? S.data.config : {sla_minutes:15,warning_minutes:10,critical_minutes:13,assign_minutes:30,unverified_hours:8,colleagues:[]};
+const isMail = t => t.origin==="email" || /^E[0-9A-F]{10}$/.test(t.id);
+const tidLabel = t => isMail(t) ? "新郵件" : "#"+t.id;
+const ageDays = ms => ms==null ? null : (nowMs()-ms)/864e5;
+function catIndex(){ const idx = {}; if(!S.data || !S.data.categories) return idx;
+  const col = {}; (S.data.categories.master||[]).forEach(c=>col[c.name]=c.color);
+  (S.data.categories.items||[]).forEach(it=>{ if(it.ticket_id){ (idx[it.ticket_id] ||= new Set()); it.categories.forEach(c=>idx[it.ticket_id].add(c)); } });
+  const out = {}; Object.entries(idx).forEach(([k,v])=>out[k]=[...v].map(n=>({name:n,color:col[n]||"#9ca3af"}))); return out; }
+const catChips = list => (list||[]).map(c=>`<span class="mini-cat"><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join("");
+const fdLink = id => (cfg().freshdesk_url||"") + "/helpdesk/tickets/" + encodeURIComponent(id);
+const avColor = name => { let h=0; for(const c of String(name)) h=(h*31+c.charCodeAt(0))>>>0; return AV_COLORS[h%AV_COLORS.length]; };
+const avatar = name => `<span class="av" style="background:${avColor(name)}">${esc(String(name).trim().slice(0,1).toUpperCase())}</span>`;
+
+async function api(path, body){
+  const r = await fetch(path, body!==undefined ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {cache:"no-store"});
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  if(!r.ok || j.error) throw new Error(j.error || ("HTTP "+r.status));
+  return j;
+}
+
+/* ================= 工單計算 ================= */
+function enrich(t){
+  const c = cfg(), n = nowMs();
+  t.startMs = ts(t.sla_start); t.respMs = ts(t.first_response_at);
+  t.level = 0; t.elapsedSec = null;
+  if(t.ignored) t.phase = "ignored";
+  else if(!t.first_response_at){
+    if(t.startMs==null) t.phase = "unverified";
+    else{
+      t.elapsedSec = (n - t.startMs)/1000;
+      const base = ts(S.data && S.data.baseline_at);
+      if(t.elapsedSec > c.unverified_hours*3600) t.phase = "unverified";
+      else if(isMail(t) && base && t.startMs < base - 30*60000) t.phase = "unverified";
+      else{
+        t.phase = "reply";
+        const m = t.elapsedSec/60;
+        t.level = m>=c.sla_minutes ? 3 : m>=c.critical_minutes ? 2 : m>=c.warning_minutes ? 1 : 0;
+      }
+    }
+  }
+  else if(t.status==="closed") t.phase = "closed";
+  else if(!t.assignee) t.phase = (t.respMs!=null && (n - t.respMs) > (c.assign_queue_hours||24)*3600000) ? "old" : "assign";
+  else t.phase = t.status==="resolved" ? "resolved" : t.status==="waiting" ? "waiting" : "progress";
+  t.unknownResp = t.response_source==="manual_unknown";
+  t.respMin = (!t.unknownResp && t.respMs!=null && t.startMs!=null) ? (t.respMs - t.startMs)/60000 : null;
+  t.met = t.respMin!=null ? t.respMin <= c.sla_minutes : null;
+  t.assignOverdue = t.phase==="assign" && t.respMs!=null && (n - t.respMs)/60000 > c.assign_minutes;
+  const lastAgent = Math.max(ts(t.last_agent_reply_at)||0, t.respMs||0);
+  t.custNew = !!t.last_customer_reply_at && ts(t.last_customer_reply_at) > lastAgent && t.phase!=="reply";
+  t.statusMs = ts(t.status_at);
+  t.mail = isMail(t);
+  t.noTicket = t.mail && t.startMs!=null && (n - t.startMs) > 5*60000;
+  return t;
+}
+const tickets = () => (S.data ? S.data.tickets : []).map(enrich);
+const byId = id => tickets().find(t => t.id===id);
+
+/* ================= 資料更新 ================= */
+async function refresh(){
+  try{
+    const d = await api("/api/state");
+    if(S.version && d.version !== S.version){ location.reload(); return; }   // 後台已更新到新版本
+    S.version = d.version;
+    S.data = d; S.offset = ts(d.server_now) - Date.now();
+    if(Math.abs(S.offset) < 2000) S.offset = 0;
+    S.connected = true;
+    renderAll();
+    checkAlerts();
+    S.firstLoad = false;
+  }catch(e){
+    S.connected = false; renderChrome();
+  }
+}
+function focusedIn(el){ const a=document.activeElement; return a && el.contains(a) && /INPUT|SELECT|TEXTAREA/.test(a.tagName); }
+
+function renderAll(){
+  renderChrome();
+  const pg = $("#page-"+S.page);
+  if(S.page!=="settings" && !focusedIn(pg)) RENDER[S.page]();
+  if(S.drawerId && !focusedIn($("#drawer"))) renderDrawer();
+  S.levelsSig = levelsSig();
+}
+function levelsSig(){ return tickets().map(t=>t.id+":"+t.phase+":"+t.level+":"+(t.assignOverdue?1:0)).join("|"); }
+
+function tick(){
+  const n = nowMs(); const d = new Date(n);
+  $("#clock").textContent = pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+  if(!S.data) return;
+  const c = cfg();
+  document.querySelectorAll("[data-cd]").forEach(el=>{
+    const start = +el.dataset.cd, el2 = (n-start)/1000, rem = c.sla_minutes*60 - el2;
+    el.textContent = rem>=0 ? mmss(rem) : "+"+mmss(-rem);
+    const ring = el.closest(".ring");
+    if(ring){ const p = ring.querySelector(".prog"); const frac = Math.min(1, el2/(c.sla_minutes*60));
+      p.setAttribute("stroke-dashoffset", String(RING_C*(1-frac)));
+      ring.querySelector("small").textContent = rem>=0 ? "剩餘" : "已超時"; }
+  });
+  document.querySelectorAll("[data-since]").forEach(el=>{ el.textContent = durTxt((n - +el.dataset.since)/60000); });
+  const sig = levelsSig();
+  if(sig !== S.levelsSig){ renderAll(); checkAlerts(); }
+  updateTitle();
+}
+
+/* ================= 掃描狀態 ================= */
+function scanState(){
+  const h = S.data.health, c = cfg(), n = nowMs(), lastOk = ts(h.last_ok), alive = ts(h.alive_at);
+  const errAfterOk = h.last_error_at && (!lastOk || ts(h.last_error_at) >= lastOk);
+  if(h.mode==="demo") return {label:"示範模式", cls:"warn", bad:false};
+  if(h.mode==="no_outlook") return {label:"未連接 Outlook", cls:"bad", bad:true};
+  if(alive && n - alive > 120000) return {label:"Outlook 沒有回應", cls:"bad", bad:true, frozen:true};
+  if(errAfterOk && !h.running) return {label:"Outlook 讀取失敗", cls:"bad", bad:true, err:true};
+  const busy = h.running ? `${h.scan_kind||"掃描"}中…${h.progress? " 已讀取 "+h.progress+" 封":""}` : "";
+  if(!lastOk) return {label: busy || "準備掃描…", cls:"warn", bad:false};
+  if(h.running) return {label:"運作正常", cls:"ok", bad:false, busy};
+  if((n-lastOk)/1000 > Math.max(c.scan_interval_seconds*3, 300)) return {label:"掃描停滯", cls:"bad", bad:true};
+  return {label:"運作正常", cls:"ok", bad:false};
+}
+
+/* ================= 外框 ================= */
+function renderChrome(){
+  const dot=$("#connDot"), txt=$("#connTxt"), sub=$("#connSub");
+  const banners=[];
+  if(S.connected===false){
+    dot.className="dot bad"; txt.textContent="後台已中斷"; sub.textContent="請重新打開 PulseDesk";
+    banners.push(`<div class="banner bad">⚠ 無法連接 PulseDesk 後台，程式可能已關閉。請重新打開 PulseDesk。</div>`);
+    $("#banners").innerHTML = banners.join(""); return;
+  }
+  if(!S.data) return;
+  const h = S.data.health, c = cfg(), n = nowMs();
+  const lastOk = ts(h.last_ok), st = scanState();
+  const state = st.bad ? "bad" : "ok";
+  dot.className = "dot "+st.cls;
+  if(h.mode==="demo"){ txt.textContent="示範模式"; sub.textContent="虛擬資料 · v"+S.data.version; }
+  else if(h.mode==="no_outlook"){ txt.textContent="未連接 Outlook"; sub.textContent="需要 Windows + pywin32"; }
+  else { txt.textContent = st.label==="運作正常" ? "Outlook Classic" : st.label;
+    sub.textContent = st.busy || ((h.outlook_user? h.outlook_user+" · " : "")+(h.instant?"新郵件即時偵測":"每 "+c.scan_interval_seconds+" 秒掃描")) + " · v"+S.data.version; }
+  $("#upd").textContent = lastOk ? "更新於 "+hm(lastOk) + (st.busy?" · "+st.busy:"") : (st.label||"");
+
+  if(h.mode==="demo") banners.push(`<div class="banner info">ℹ 示範模式：以下全部是虛擬工單，方便你預覽界面。正式使用請直接打開 PulseDesk（不加 --demo）。</div>`);
+  if(h.mode==="no_outlook") banners.push(`<div class="banner bad">⚠ ${esc(h.last_error)}</div>`);
+  else if(state==="bad" && h.mode!=="demo"){
+    if(st.frozen) banners.push(`<div class="banner bad">⚠ Outlook 超過 2 分鐘沒有回應 PulseDesk，新客戶郵件可能未顯示。Outlook 可能正在顯示對話框（例如「有程式嘗試存取電子郵件」）、正在同步大量郵件，或已經關閉。請切換到 Outlook 檢查。</div>`);
+    else { const why = st.err ? "錯誤："+esc(h.last_error) : "上次成功掃描是 "+durTxt((n-lastOk)/60000)+"前";
+      banners.push(`<div class="banner bad">⚠ Outlook 掃描未能更新，新客戶郵件可能未顯示。${why}。請確認 Outlook Classic 已開啟。<button class="btn sm" onclick="doSync(false)">重新同步</button></div>`); }
+  }
+  const ferr = Object.entries(h.folder_errors||{});
+  if(ferr.length && state!=="bad" && h.mode!=="demo")
+    banners.push(`<div class="banner warn">⚠ ${ferr.length} 個資料夾暫時未能讀取（其他資料夾照常監控）：${esc(ferr[0][0].split("\\").slice(-1)[0])} — ${esc(ferr[0][1].error)}<button class="btn sm" onclick="go('health')">查看</button></div>`);
+  const orph = tickets().filter(t=>t.phase==="reply" && t.noTicket).length;
+  if(orph && S.page!=="board") banners.push(`<div class="banner warn">✉ 有 ${orph} 封客戶郵件未回覆，而且超過 5 分鐘仍未有 Freshdesk 工單。<button class="btn sm" onclick="go('board')">查看</button></div>`);
+  if(("Notification" in window) && Notification.permission==="default" && S.page==="board")
+    banners.push(`<div class="banner info">🔔 啟用桌面通知，即使 PulseDesk 在背景也能收到超時提醒。<button class="btn sm primary" onclick="askNotif()">啟用通知</button></div>`);
+  if(AC && AC.state==="suspended" && !S.mute && cfg().sound)
+    banners.push(`<div class="banner info">🔊 瀏覽器需要你先點擊一下頁面，才可以播放提示聲。<button class="btn sm" onclick="unlockAudio()">啟用提示聲</button></div>`);
+  $("#banners").innerHTML = banners.join("");
+
+  const all = tickets();
+  const urgent = all.filter(t=>t.phase==="reply").length;
+  const bb=$("#b-board"); bb.textContent = urgent||""; bb.className = "badge"+(all.some(t=>t.phase==="reply"&&t.level>=1)?" hot":"");
+  $("#b-list").textContent = all.filter(t=>["assign","progress","waiting"].includes(t.phase)).length || "";
+  $("#b-health").textContent = state==="bad" ? "!" : "";
+  const cats = S.data.categories||{items:[]};
+  $("#b-cats").textContent = (cats.items||[]).length || "";
+  $("#muteBtn").textContent = S.mute ? "🔇" : "🔊";
+  $("#notifBtn").style.display = ("Notification" in window) && Notification.permission!=="granted" ? "" : "none";
+}
+function updateTitle(){
+  const all = S.data ? tickets() : [];
+  const hot = all.filter(t=>t.phase==="reply" && t.level>=1);
+  const breached = hot.filter(t=>t.level===3).length;
+  if(hot.length){
+    const blink = Math.floor(Date.now()/1000)%2===0;
+    document.title = (blink ? (breached? "🔴 ":"🟠 ") : "") + `(${hot.length}) ${breached?"已超時":"即將超時"} — PulseDesk`;
+  } else {
+    const n = all.filter(t=>t.phase==="reply").length;
+    document.title = (n? `(${n}) 待回覆 — `:"") + "PulseDesk";
+  }
+}
+
+/* ================= 即時看板 ================= */
+const RING_R = 40, RING_C = 2*Math.PI*RING_R;
+const LV_COLOR = ["var(--ok)","var(--warn)","var(--crit)","var(--bad)"];
+
+function renderBoard(){
+  const c = cfg(), all = tickets(), n = nowMs();
+  const reply = all.filter(t=>t.phase==="reply").sort((a,b)=>a.startMs-b.startMs);
+  const warnN = reply.filter(t=>t.level===1||t.level===2).length;
+  const breachNow = reply.filter(t=>t.level===3).length;
+  const todays = all.filter(t=>!t.ignored && isToday(t.startMs));
+  const todayResp = todays.filter(t=>t.respMin!=null);
+  const todayMet = todayResp.filter(t=>t.met).length;
+  const todayLate = todayResp.length - todayMet + breachNow;
+  const rate = (todayResp.length+breachNow) ? Math.round(todayMet/(todayResp.length+breachNow)*100) : null;
+  const avg = todayResp.length ? todayResp.reduce((s,t)=>s+t.respMin,0)/todayResp.length : null;
+  const assign = all.filter(t=>t.phase==="assign");
+  const prog = all.filter(t=>t.phase==="progress"), wait = all.filter(t=>t.phase==="waiting");
+  const resolvedToday = all.filter(t=>t.phase==="resolved" && isToday(t.statusMs));
+  const oldest = reply[0];
+  const unver = all.filter(t=>t.phase==="unverified" && (t.startMs==null || n-t.startMs < 7*864e5));
+  const fups = (S.data.followups||[]);
+
+  const kpi = (cls,l,v,s,extra="") => `<div class="card kpi ${cls}"><div class="l">${l}</div><div class="v num">${v}</div><div class="s">${s}</div>${extra}</div>`;
+  let html = `<div class="kpis">
+    ${kpi("t-blue","待首次回覆", reply.length, oldest ? `最久已等 <b class="num" data-since="${oldest.startMs}">${durTxt((n-oldest.startMs)/60000)}</b>` : "全部已回覆 ✓")}
+    ${kpi("t-warn"+(warnN?" alarm":""),"即將超時", warnN, `已等 ${c.warning_minutes}–${c.sla_minutes} 分鐘`)}
+    ${kpi("t-bad"+(breachNow?" alarm":""),"已超時未回覆", breachNow, `今日共 ${todayLate} 張超過 ${c.sla_minutes} 分鐘`)}
+    ${kpi("t-ok","今日達標率", rate==null?"—":rate+"%", `平均首次回覆 ${avg==null?"—":avg.toFixed(1)+" 分鐘"}`,
+        `<div class="meter"><i style="width:${rate||0}%;background:${rate==null?"transparent":rate>=90?"var(--ok)":rate>=75?"var(--warn)":"var(--bad)"}"></i></div>`)}
+    ${kpi("t-purple"+(assign.some(t=>t.assignOverdue)?" alarm":""),"待分派", assign.length, `逾 ${c.assign_minutes} 分鐘未分派：${assign.filter(t=>t.assignOverdue).length}`)}
+    ${kpi("t-blue","跟進中", prog.length, `等待客戶回覆：${wait.length}`)}
+    ${kpi("t-gray","今日新工單", todays.length, `已首次回覆 ${todayResp.length} 張`)}
+    ${kpi("t-ok","今日已解決", resolvedToday.length, `由看板標記為已解決`)}
+  </div>`;
+
+  html += `<div class="sec-h"><h2>⏱ 首次回覆倒數</h2><span class="hint">客戶郵件一到即開始計時；Freshdesk 建立工單後自動合併；同事回覆客戶（Freshdesk 或 Outlook）後自動停止</span>
+    <div class="legend"><span><i style="background:var(--ok)"></i>0–${c.warning_minutes} 分</span><span><i style="background:var(--warn)"></i>${c.warning_minutes}–${c.critical_minutes} 分</span><span><i style="background:var(--crit)"></i>${c.critical_minutes}–${c.sla_minutes} 分</span><span><i style="background:var(--bad)"></i>超時</span></div></div>`;
+  if(!reply.length) html += `<div class="card empty"><b>👍 全部客戶郵件都已首次回覆</b>新的客戶郵件一到，就會自動出現在這裡並開始倒數。</div>`;
+  else html += `<div class="cd-grid">${reply.map(cdCard).join("")}</div>`;
+
+  if(fups.length){
+    html += `<div class="sec-h"><h2>客戶回覆了舊工單</h2><span class="hint">客戶在 PulseDesk 未有紀錄的舊工單上再來信（例如「New comment - [#254299]」），不計首次回覆時限</span></div>
+    <div class="card tbl-wrap"><table><tbody>${fups.slice(0,15).map(m=>`<tr style="cursor:default">
+      <td style="width:110px"><span class="tid">#${esc(m.ticket_id)}</span></td>
+      <td><b>${esc(m.sender_name||m.sender)}</b><div class="meta" style="margin:0">${esc(m.subject)}</div></td>
+      <td class="sm">${whenTxt(ts(m.time))}</td>
+      <td style="text-align:right;white-space:nowrap"><a class="btn sm" href="${fdLink(m.ticket_id)}" target="_blank" rel="noopener">Freshdesk ↗</a>
+        ${String(m.entry_id).startsWith("demo")?"":mailBtn(m.entry_id,m.store_id,"Outlook")}
+        <button class="btn sm" onclick="dismissMail('${esc(m.entry_id)}')">已處理</button></td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  if(unver.length){
+    html += `<div class="sec-h"><h2>需人手確認</h2><span class="hint">開始使用 PulseDesk 之前的郵件，或超過 ${c.unverified_hours} 小時仍未偵測到回覆（可能用電話回覆）。標記後不計入達標率。</span>
+    <button class="btn sm" style="margin-left:auto" onclick="bulkUnverified()">全部標記為已回覆</button></div>
+    <div class="card tbl-wrap"><table><tbody>${unver.slice(0,20).map(t=>`<tr onclick="openDrawer('${esc(t.id)}')">
+      <td style="width:110px"><span class="tid">${esc(tidLabel(t))}</span></td><td><b>${esc(t.company||t.requester||"—")}</b><div class="meta">${esc(t.subject)}</div></td>
+      <td class="sm">${whenTxt(t.startMs)}</td>
+      <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()"><button class="btn sm ok" onclick="act('${esc(t.id)}',{action:'respond', unknown:true})">✓ 已回覆</button> <button class="btn sm" onclick="act('${esc(t.id)}',{action:'ignore'})">忽略</button></td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  html += `<div class="sec-h"><h2>分派與跟進</h2><span class="hint">拖動卡片可改變狀態，點擊卡片查看詳情</span></div>
+  <div class="kanban">
+    ${kcol("assign","待分派","var(--purple)", assign.sort((a,b)=>(a.respMs||0)-(b.respMs||0)))}
+    ${kcol("progress","跟進中","var(--accent)", prog.sort((a,b)=>(b.custNew-a.custNew)||((a.startMs||0)-(b.startMs||0))))}
+    ${kcol("waiting","等待客戶","var(--warn)", wait.sort((a,b)=>(b.custNew-a.custNew)||((a.startMs||0)-(b.startMs||0))))}
+    ${kcol("resolved","今日已解決","var(--ok)", resolvedToday.sort((a,b)=>b.statusMs-a.statusMs))}
+  </div>`;
+  $("#page-board").innerHTML = html;
+  bindDnD();
+}
+
+function cdCard(t){
+  const c = cfg(), sla = c.sla_minutes*60, el = t.elapsedSec, rem = sla-el, frac = Math.min(1, el/sla);
+  const who = [t.company, t.requester].filter(Boolean).join(" · ") || t.requester_email || "未知客戶";
+  return `<div class="card cd l${t.level}" onclick="openDrawer('${esc(t.id)}')">
+    <div class="ring"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="${RING_R}" fill="none" stroke="#e8ecf3" stroke-width="8"/>
+      <circle class="prog" cx="46" cy="46" r="${RING_R}" fill="none" stroke="${LV_COLOR[t.level]}" stroke-width="8" stroke-linecap="round"
+        stroke-dasharray="${RING_C}" stroke-dashoffset="${RING_C*(1-frac)}"/></svg>
+      <div class="c"><b class="num" data-cd="${t.startMs}" style="color:${LV_COLOR[t.level]}">${rem>=0?mmss(rem):"+"+mmss(-rem)}</b><small>${rem>=0?"剩餘":"已超時"}</small></div></div>
+    <div class="cd-info">
+      <div class="tid">${esc(tidLabel(t))} <span class="pill l${t.level}">${LEVEL_TXT[t.level]}</span>${t.noTicket?`<span class="pill amber">未有 Freshdesk 工單</span>`:""}</div>
+      <div class="cust">${esc(who)}</div>
+      <div class="subj">${esc(t.subject||"(無主旨)")}</div>
+      <div class="meta">收到 ${whenTxt(t.startMs)}</div>
+      <div class="acts" onclick="event.stopPropagation()">
+        ${t.mail ? mailBtn(t.customer_entry, t.store_id, "在 Outlook 打開", "primary")
+                 : `<a class="btn sm primary" href="${fdLink(t.id)}" target="_blank" rel="noopener">在 Freshdesk 回覆 ↗</a>${mailBtn(t.customer_entry||t.notif_entry||t.ack_entry, t.store_id, "Outlook")}`}
+        <button class="btn sm ok" onclick="act('${esc(t.id)}',{action:'respond'})" title="已用其他方式回覆（例如電話）">✓ 已回覆</button>
+        <button class="btn sm ghost" onclick="notRequestDlg('${esc(t.id)}')" title="這封不需要回覆（例如供應商、系統通知）">✕ 不是請求</button>
+      </div>
+    </div></div>`;
+}
+function mailBtn(entry, store, label, cls=""){
+  if(!entry || String(entry).startsWith("demo")) return "";
+  return `<button class="btn sm ${cls}" onclick="openMail('${esc(entry)}','${esc(store||"")}')">${esc(label)}</button>`;
+}
+async function bulk(ids, body, msg){
+  try{ const r = await api("/api/bulk", Object.assign({ids}, body)); await refresh(); toast(msg.replace("{n}", r.done), "", "ok"); }
+  catch(e){ toast("操作失敗", e.message, "bad"); }
+}
+function bulkUnverified(){
+  const list = tickets().filter(t=>t.phase==="unverified");
+  if(!confirm(`把 ${list.length} 張「需人手確認」全部標記為已回覆？\n回覆時間不明，不會計入達標率及平均回覆時間。`)) return;
+  bulk(list.map(t=>t.id), {action:"respond", unknown:true}, "已標記 {n} 張");
+}
+function bulkAssignDone(){
+  const list = tickets().filter(t=>t.phase==="assign");
+  if(!confirm(`把「待分派」的 ${list.length} 張工單全部標記為「已處理（不需分派）」？\n例如已在 Freshdesk 分派，或不需要跟進。`)) return;
+  bulk(list.map(t=>t.id), {action:"status", status:"closed"}, "已處理 {n} 張");
+}
+function kcol(key, title, color, list){
+  const max = key==="resolved" ? 12 : 40;
+  return `<div class="col" data-col="${key}"><div class="col-h"><i style="background:${color}"></i>${title}<span class="n">${list.length}</span>${key==="assign"&&list.length>1?`<button class="btn sm ghost" style="margin-left:auto;padding:2px 8px" onclick="bulkAssignDone()" title="已在 Freshdesk 分派或不需跟進">全部已處理</button>`:""}</div>
+    ${list.slice(0,max).map(t=>kcard(t,key)).join("") || `<div class="more">沒有工單</div>`}
+    ${list.length>max?`<a class="more" href="#" onclick="go('list');return false">還有 ${list.length-max} 張 →</a>`:""}</div>`;
+}
+function kcard(t, key){
+  const c = cfg();
+  const badges = [];
+  if(t.mail) badges.push(`<span class="pill amber">未有 Freshdesk 工單</span>`);
+  if(t.custNew) badges.push(`<span class="pill red">● 客戶新回覆</span>`);
+  if(t.assignOverdue) badges.push(`<span class="pill red">逾時未分派</span>`);
+  if(t.respMin!=null) badges.push(`<span class="pill ${t.met?"green":"red"}">回覆 ${Math.round(t.respMin)} 分${t.met?" ✓":""}</span>`);
+  if(t.first_responder && key!=="progress" && key!=="waiting") badges.push(`<span class="pill blue" title="首次回覆同事（${esc(t.first_responder_how||"")}）">✉ ${esc(t.first_responder)}</span>`);
+  const since = key==="assign" ? t.respMs : key==="resolved" ? t.statusMs : (ts(t.assigned_at)||t.startMs);
+  const qa = key==="assign" ? `<select class="qa" onclick="event.stopPropagation()" onchange="quickAssign('${esc(t.id)}',this)">
+      <option value="">分派給…</option>${t.first_responder && c.colleagues.some(x=>x.name===t.first_responder)?`<option value="${esc(t.first_responder)}">${esc(t.first_responder)}（首次回覆的同事）</option>`:""}${c.colleagues.map(x=>`<option>${esc(x.name)}</option>`).join("")}<option value="__other">其他…</option></select>` : "";
+  return `<div class="kc ${t.assignOverdue?"over-due":""}" draggable="true" data-id="${esc(t.id)}" onclick="openDrawer('${esc(t.id)}')">
+    <div class="row1"><span class="tid">${esc(tidLabel(t))}</span><span class="meta" style="margin:0">${since?`<span data-since="${since}">${durTxt((nowMs()-since)/60000)}</span>`:""}</span></div>
+    <div class="t">${esc(t.subject||"(無主旨)")}</div>
+    <div class="c2">${esc([t.company,t.requester].filter(Boolean).join(" · ")||t.requester_email||"")}</div>
+    <div class="foot">${t.assignee?`<span class="who">${avatar(t.assignee)}${esc(t.assignee)}</span>`:""}${badges.join("")}${catChips(catIndex()[t.id])}</div>
+    ${qa}</div>`;
+}
+function bindDnD(){
+  document.querySelectorAll(".kc").forEach(el=>{
+    el.addEventListener("dragstart", e=>{ e.dataTransfer.setData("text/plain", el.dataset.id); el.classList.add("dragging"); });
+    el.addEventListener("dragend", ()=>el.classList.remove("dragging"));
+  });
+  document.querySelectorAll(".col").forEach(col=>{
+    col.addEventListener("dragover", e=>{ e.preventDefault(); col.classList.add("over"); });
+    col.addEventListener("dragleave", ()=>col.classList.remove("over"));
+    col.addEventListener("drop", e=>{ e.preventDefault(); col.classList.remove("over");
+      dropTo(e.dataTransfer.getData("text/plain"), col.dataset.col); });
+  });
+}
+async function dropTo(id, colKey){
+  const t = byId(id); if(!t || t.phase===colKey) return;
+  if(colKey==="assign") return act(id,{action:"assign", assignee:""});
+  if(!t.assignee){ toast("請先選擇負責同事","分派後才可以改為「"+PHASE[colKey][0]+"」","warn"); return openDrawer(id); }
+  act(id,{action:"status", status:colKey});
+}
+async function quickAssign(id, sel){
+  let who = sel.value; if(!who) return;
+  if(who==="__other"){ who = prompt("輸入同事名稱："); if(!who){ sel.value=""; return; } }
+  sel.blur();
+  await assignTo(id, who, true);
+}
+async function assignTo(id, who, notifyIfEmail){
+  await act(id,{action:"assign", assignee:who});
+  const col = cfg().colleagues.find(c=>c.name===who);
+  if(notifyIfEmail && col && col.email && !S.data.demo){
+    try{ await api("/api/notify",{id, colleague:who}); toast("已分派給 "+who, "已在 Outlook 開啟通知草稿，請檢查後按傳送。","ok"); }
+    catch(e){ toast("已分派給 "+who, "未能開啟 Outlook 草稿："+e.message,"warn"); }
+  } else toast("已分派給 "+who, "#"+id, "ok");
+}
+
+/* ================= 工單詳情 ================= */
+async function openDrawer(id){
+  S.drawerId = id; S.timeline = null;
+  $("#drawer").classList.add("on"); $("#scrim").classList.add("on");
+  renderDrawer();
+  try{ S.timeline = await api("/api/timeline?id="+encodeURIComponent(id)); if(S.drawerId===id) renderDrawer(); }catch(e){}
+}
+function closeDrawer(){ S.drawerId=null; $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); }
+function renderDrawer(){
+  const t = byId(S.drawerId); const dr = $("#drawer");
+  if(!t){ dr.innerHTML = `<div class="dr-h"><h3>找不到工單</h3><button class="btn sm ghost" style="margin-left:auto" onclick="closeDrawer()">✕</button></div>`; return; }
+  const c = cfg(), n = nowMs(), id = esc(t.id);
+  let sla;
+  if(t.phase==="reply"){
+    const rem = c.sla_minutes*60 - t.elapsedSec;
+    sla = `<div class="sla-big"><div class="ring" style="width:64px;height:64px"><svg viewBox="0 0 92 92" style="width:64px;height:64px"><circle cx="46" cy="46" r="${RING_R}" fill="none" stroke="#e8ecf3" stroke-width="10"/><circle class="prog" cx="46" cy="46" r="${RING_R}" fill="none" stroke="${LV_COLOR[t.level]}" stroke-width="10" stroke-dasharray="${RING_C}" stroke-dashoffset="${RING_C*(1-Math.min(1,t.elapsedSec/(c.sla_minutes*60)))}"/></svg><div class="c"><small></small></div></div>
+      <div><div class="v num" data-cd="${t.startMs}" style="color:${LV_COLOR[t.level]}">${rem>=0?mmss(rem):"+"+mmss(-rem)}</div><div class="meta">${rem>=0?"距離 "+c.sla_minutes+" 分鐘時限":"已超過時限"} · <span class="pill l${t.level}">${LEVEL_TXT[t.level]}</span></div></div></div>`;
+  } else if(t.unknownResp){
+    sla = `<div class="sla-big"><div class="v" style="color:var(--ok)">✓ 已回覆</div><div><b>回覆時間不明</b><div class="meta">事後人手補記，不計入達標率及平均回覆時間</div></div></div>`;
+  } else if(t.respMin!=null){
+    sla = `<div class="sla-big"><div class="v" style="color:${t.met?"var(--ok)":"var(--bad)"}">${t.met?"✓ 達標":"✕ 超時"}</div><div><b>首次回覆用時 ${durTxt(t.respMin)}</b><div class="meta">${t.response_source==="manual"?"人手標記":"偵測到回覆客戶的郵件"}</div></div></div>`;
+  } else if(t.respMs!=null){
+    sla = `<div class="sla-big"><div class="v" style="color:var(--ok)">✓ 已回覆</div><div class="meta">工單建立時間不在掃描範圍內，未能計算用時</div></div>`;
+  } else sla = `<div class="sla-big"><div class="v" style="color:var(--warn)">需確認</div><div class="meta">未偵測到回覆郵件</div></div>`;
+
+  const colOpts = c.colleagues.map(x=>`<option ${x.name===t.assignee?"selected":""}>${esc(x.name)}</option>`).join("");
+  const other = t.assignee && !c.colleagues.some(x=>x.name===t.assignee) ? `<option selected>${esc(t.assignee)}</option>` : "";
+  const st = t.status==="resolved"?"resolved":t.status==="waiting"?"waiting":"progress";
+
+  const tl = [];
+  if(S.timeline){
+    S.timeline.mails.forEach(m=>{ const k = KIND[m.kind]||["郵件","✉","#eef1f6","#64748b"];
+      tl.push({ms:ts(m.time), html:`<span class="ic" style="background:${k[2]};color:${k[3]}">${k[1]}</span><div><b>${k[0]}</b>${m.replier?` <span class="pill blue">${esc(m.replier)}</span>`:""}<div class="meta" style="margin:0">${esc(m.sender_name||m.sender||"")} · ${esc(m.subject||"")}${m.replier_how?` · ${esc(m.replier_how)}`:""}</div>${m.entry_id&&!String(m.entry_id).startsWith("demo")?`<a href="#" onclick="openMail('${esc(m.entry_id)}','${esc(m.store_id||"")}');return false">在 Outlook 打開</a>`:""}</div>`}); });
+    S.timeline.activity.forEach(a=>tl.push({ms:ts(a.time), html:`<span class="ic" style="background:#eef1f6;color:#475569">•</span><div>${esc(a.text)}</div>`}));
+    tl.sort((a,b)=>a.ms-b.ms);
+  }
+
+  dr.innerHTML = `<div class="dr-h"><div style="min-width:0;flex:1">
+      <div class="row"><span class="tid">${esc(tidLabel(t))}</span>${t.mail?`<span class="pill amber">未有 Freshdesk 工單</span>`:""}${catChips(catIndex()[t.id])}<span class="pill ${PHASE[t.phase][1]}">${PHASE[t.phase][0]}</span>${t.custNew?`<span class="pill red">● 客戶新回覆</span>`:""}</div>
+      <h3>${esc(t.subject||"(無主旨)")}</h3>
+      <div class="meta">${esc([t.company,t.requester,t.requester_email].filter(Boolean).join(" · "))}</div></div>
+      <button class="btn sm ghost" onclick="closeDrawer()" title="關閉">✕</button></div>
+    <div class="dr-b">
+      <div class="row" style="margin-bottom:12px">
+        ${t.mail?"":`<a class="btn sm primary" href="${fdLink(t.id)}" target="_blank" rel="noopener">在 Freshdesk 打開 ↗</a>`}
+        ${mailBtn(t.customer_entry,t.store_id,"客戶原信",t.mail?"primary":"")}${mailBtn(t.notif_entry,t.store_id,"建立通知")}${mailBtn(t.reply_entry,t.store_id,"首次回覆")}
+      </div>
+      <div class="blk"><h4>首次回覆 SLA</h4>${sla}
+        <div class="kv"><span>收到時間</span><span>${t.startMs?new Date(t.startMs).toLocaleString("zh-HK"):"—"}</span>
+          <span>首次回覆</span><span>${t.respMs?new Date(t.respMs).toLocaleString("zh-HK"):"—"}</span>
+          <span>回覆同事</span><span>${t.respMs?`${t.first_responder?`<b>${esc(t.first_responder)}</b>`:"未知"} <span class="meta" style="margin:0">${esc(t.first_responder_how||"")}</span>
+            <a href="#" onclick="responderDlg('${esc(t.id)}');return false">修正</a>`:"—"}</span>
+          <span>客戶最後回覆</span><span>${t.last_customer_reply_at?new Date(ts(t.last_customer_reply_at)).toLocaleString("zh-HK"):"—"}</span></div>
+        <div class="row" style="margin-top:12px">
+          ${!t.respMs?`<button class="btn sm ok" onclick="act('${id}',{action:'respond'})">✓ 標記已回覆</button>`:""}
+          ${t.response_source==="manual"||t.unknownResp?`<button class="btn sm" onclick="act('${id}',{action:'unrespond'})">取消已回覆標記</button>`:""}
+          ${t.ignored?`<button class="btn sm" onclick="act('${id}',{action:'unignore'})">取消忽略</button>`:""}
+        </div></div>
+      <div class="blk"><h4>修正判斷</h4>
+        <div class="meta" style="margin:0 0 10px">PulseDesk 判斷錯誤時在這裡修正。修正會記錄下來，部分修正會自動加入忽略規則，以後更準確。</div>
+        <div class="row">
+          ${t.ignored?"":`<button class="btn sm" onclick="notRequestDlg('${id}')">✕ 不是客戶請求…</button>`}
+          <button class="btn sm" onclick="mergeDlg('${id}')">⇲ 合併到另一張工單…</button>
+          ${t.mail?`<button class="btn sm" onclick="linkDlg('${id}')"># 連結 Freshdesk 工單號碼…</button>`:""}
+          ${t.respMs && t.response_source!=="manual"?`<button class="btn sm" onclick="if(confirm('偵測到的郵件其實不是回覆客戶？\n這張工單會重新開始計時。'))act('${id}',{action:'not_reply'})">↺ 這不是回覆</button>`:""}
+        </div></div>
+      <div class="blk"><h4>分派</h4>
+        <div class="row"><select class="inp" id="drWho" style="flex:1"><option value="">— 未分派 —</option>${other}${colOpts}<option value="__other">其他…</option></select>
+          <button class="btn primary" onclick="drAssign('${id}')">分派</button></div>
+        <label class="chk" style="margin-top:8px"><input type="checkbox" id="drNotify" checked> 同時在 Outlook 開啟通知草稿（需要同事電郵）</label>
+        ${t.assignee?`<div class="meta">由 ${esc(t.assignee)} 負責${t.assigned_at?" · 分派於 "+whenTxt(ts(t.assigned_at)):""}</div>`:""}</div>
+      <div class="blk"><h4>跟進狀態</h4>
+        <div class="seg">${[["progress","跟進中"],["waiting","等待客戶"],["resolved","已解決"]].map(([k,l])=>`<button class="${t.assignee&&st===k?"on":""}" onclick="drStatus('${id}','${k}')">${l}</button>`).join("")}</div>
+        ${!t.assignee?`<div class="meta">分派同事後才可以設定跟進狀態</div>`:""}</div>
+      <div class="blk"><h4>備註</h4><textarea class="inp" id="drNote" placeholder="例如：已致電客戶，等待對方提供截圖…">${esc(t.note||"")}</textarea>
+        <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="btn sm" onclick="drNote('${id}')">儲存備註</button></div></div>
+      <div class="blk"><h4>時間線</h4>${S.timeline?`<ul class="tl">${tl.map(x=>`<li><span class="tm">${whenTxt(x.ms)}</span>${x.html}</li>`).join("")||"<li>沒有紀錄</li>"}</ul>`:`<div class="meta">載入中…</div>`}</div>
+    </div>`;
+}
+async function drAssign(id){
+  let who = $("#drWho").value;
+  if(who==="__other"){ who = prompt("輸入同事名稱："); if(!who) return; }
+  if(!who){ await act(id,{action:"assign", assignee:""}); toast("已取消分派","#"+id); return; }
+  await assignTo(id, who, $("#drNotify").checked);
+}
+async function drStatus(id, st){
+  const t = byId(id); if(!t.assignee){ toast("請先分派同事","", "warn"); return; }
+  await act(id,{action:"status", status:st});
+}
+async function drNote(id){ await act(id,{action:"note", note:$("#drNote").value}); toast("已儲存備註","#"+id,"ok"); }
+
+async function act(id, body){
+  try{
+    const r = await api("/api/ticket", Object.assign({id}, body));
+    if(r.moved_to){
+      await refresh();
+      if(S.drawerId===id) openDrawer(r.moved_to);
+      toast(body.action==="link" ? "已連結到 Tkt#"+r.moved_to : "已合併", "", "ok");
+      return r;
+    }
+    const i = S.data.tickets.findIndex(t=>t.id===id); if(i>=0) S.data.tickets[i] = r.ticket;
+    if(S.drawerId===id){ try{ S.timeline = await api("/api/timeline?id="+encodeURIComponent(id)); }catch(e){} }
+    document.activeElement && document.activeElement.blur && document.activeElement.blur();
+    renderAll();
+  }catch(e){ toast("操作失敗", e.message, "bad"); }
+}
+/* ================= 修正對話框 ================= */
+function modal(title, body, okLabel, onOk){
+  const bg = document.createElement("div"); bg.className = "modal-bg";
+  bg.innerHTML = `<div class="modal"><div class="modal-h">${title}</div><div class="modal-b">${body}</div>
+    <div class="modal-f"><button class="btn" data-x>取消</button><button class="btn primary" data-ok>${okLabel}</button></div></div>`;
+  const close = () => bg.remove();
+  bg.addEventListener("click", e=>{ if(e.target===bg) close(); });
+  bg.querySelector("[data-x]").onclick = close;
+  bg.querySelector("[data-ok]").onclick = async () => { let keep = false;
+    try{ keep = await onOk(bg); }catch(e){ console.warn(e); } if(keep!==true) close(); };
+  document.body.appendChild(bg);
+  const f = bg.querySelector("input:not([type=radio]),select"); if(f) f.focus();
+  return bg;
+}
+function notRequestDlg(id){
+  const t = byId(id); if(!t) return;
+  const email = t.requester_email||"", dom = email.includes("@") ? "@"+email.split("@")[1] : "";
+  const opt = (v,l,sm,chk) => `<label class="opt"><input type="radio" name="scope" value="${v}" ${chk?"checked":""}><div><b>${l}</b><small>${sm}</small></div></label>`;
+  modal("不是客戶請求", `<div class="meta" style="margin:0 0 6px">${esc(tidLabel(t))} · ${esc(t.requester||email)} · ${esc(t.subject)}</div>
+    ${opt("this","只忽略這一張","不影響以後的郵件",true)}
+    ${email?opt("sender","以後忽略此寄件人",esc(email)+" 以後寄來的郵件都不會計時"):""}
+    ${dom?opt("domain","以後忽略整個網域",esc(dom)+" 的所有寄件人（例如供應商、系統通知）"):""}
+    ${opt("subject","以後忽略相同主旨","主旨包含「"+esc(t.subject)+"」的郵件（例如定期報告、測試郵件）")}
+    <div class="meta">規則可以在「設定 → 忽略寄件人 / 忽略主旨」修改或刪除。</div>`,
+    "確定", async bg => { const scope = bg.querySelector("input[name=scope]:checked").value;
+      await act(id,{action:"not_request", scope}); toast("已修正", scope==="this"?"只忽略這一張":"已加入忽略規則", "ok"); });
+}
+function ticketPicker(excludeId, filterFn){
+  return tickets().filter(t=>t.id!==excludeId && !t.ignored && (!filterFn || filterFn(t)))
+    .sort((a,b)=>(b.startMs||0)-(a.startMs||0)).slice(0,200);
+}
+function mergeDlg(id){
+  const t = byId(id); if(!t) return;
+  const ns = (t.subject||"").toLowerCase().slice(0,12);
+  const list = ticketPicker(id).sort((a,b)=>((b.requester_email===t.requester_email)-(a.requester_email===t.requester_email)) || (((b.subject||"").toLowerCase().includes(ns))-((a.subject||"").toLowerCase().includes(ns))));
+  const row = x => `<label data-q="${esc([x.id,x.subject,x.company,x.requester,x.requester_email].join(" ").toLowerCase())}"><input type="radio" name="tgt" value="${esc(x.id)}">
+    <div><b>${esc(tidLabel(x))}</b> ${esc(x.company||x.requester||"")} <span class="meta" style="margin:0">· ${whenTxt(x.startMs)}</span><div>${esc(x.subject)}</div></div></label>`;
+  const bg = modal("合併到另一張工單", `<div class="meta" style="margin:0 0 8px">把「${esc(t.subject)}」（${esc(tidLabel(t))}）合併到：</div>
+    <input class="inp" style="width:100%" placeholder="🔍 搜尋工單號碼、客戶、主旨…" data-search>
+    <div class="pick-list">${list.map(row).join("")||'<div class="empty">沒有其他工單</div>'}</div>
+    <div class="meta">合併後，計時取最早的客戶來信時間，郵件及紀錄會移到目標工單。</div>`,
+    "合併", async bg => { const c = bg.querySelector("input[name=tgt]:checked"); if(!c){ toast("請選擇工單","","warn"); return true; }
+      await act(id,{action:"merge", target:c.value}); });
+  bg.querySelector("[data-search]").oninput = e => { const q = e.target.value.toLowerCase();
+    bg.querySelectorAll(".pick-list label").forEach(l=>l.style.display = l.dataset.q.includes(q) ? "" : "none"); };
+}
+function responderDlg(id){
+  const t = byId(id); if(!t) return;
+  const names = cfg().colleagues.map(x=>x.name);
+  modal("修正首次回覆的同事", `<div class="meta" style="margin:0 0 8px">${esc(tidLabel(t))} · ${esc(t.subject)}<br>目前：${esc(t.first_responder||"未知")}（${esc(t.first_responder_how||"—")}）</div>
+    <select class="inp" style="width:100%" data-who><option value="">（清除）</option>${names.map(nm=>`<option ${nm===t.first_responder?"selected":""}>${esc(nm)}</option>`).join("")}</select>
+    <div class="meta">如果是簽名辨認錯誤，也請檢查「設定 → 同事名單」的簽名。</div>`,
+    "儲存", async bg => { await act(id,{action:"set_responder", responder:bg.querySelector("[data-who]").value}); });
+}
+function linkDlg(id){
+  const t = byId(id); if(!t) return;
+  modal("連結 Freshdesk 工單號碼", `<div class="meta" style="margin:0 0 8px">${esc(t.requester||t.requester_email)} · ${esc(t.subject)}</div>
+    <input class="inp" style="width:100%" placeholder="例如 254333" data-num inputmode="numeric">
+    <div class="meta">適用於 Freshdesk 已建立工單，但 PulseDesk 未能自動配對的情況。</div>`,
+    "連結", async bg => { const v = bg.querySelector("[data-num]").value.trim(); if(!/\d{3,}/.test(v)){ toast("請輸入工單號碼","","warn"); return true; }
+      await act(id,{action:"link", number:v}); });
+}
+function diagDlg(){
+  modal("匯出診斷資料", `<div class="meta" style="margin:0 0 8px">匯出每封已讀取郵件的判斷結果及原因（CSV，可用 Excel 打開）。請在「判斷正確？」一欄標記 Y / N，錯誤的在「正確應該是」寫下應有的判斷，然後把檔案發給我分析。</div>
+    <div class="fld"><label>時間範圍</label><select class="inp" data-days style="width:100%"><option value="1">今日</option><option value="3" selected>最近 3 日</option><option value="7">最近 7 日</option><option value="14">最近 14 日</option></select></div>
+    <label class="opt"><input type="checkbox" data-me checked><div><b>遮蓋客戶電郵及名稱</b><small>例如 i***@aretefunds.com（保留網域，方便分析）；公司內部地址不遮蓋</small></div></label>
+    <label class="opt"><input type="checkbox" data-ms><div><b>遮蓋主旨內容</b><small>只保留 RE:、Tkt#、Ticket Received 等格式字眼</small></div></label>
+    <div class="meta">不包含郵件內文。匯出後請先檢查內容，再決定是否分享。只包括升級到 v2.3 之後讀取的郵件，需要更早的可按「完整重新掃描」。</div>`,
+    "下載", bg => { const q = new URLSearchParams({days:bg.querySelector("[data-days]").value,
+        mask_email:bg.querySelector("[data-me]").checked?"1":"0", mask_subject:bg.querySelector("[data-ms]").checked?"1":"0"});
+      const a = document.createElement("a"); a.href = "/api/diagnostics?"+q; a.download = ""; document.body.appendChild(a); a.click(); a.remove();
+      toast("正在下載診斷資料","檔案會儲存到「下載」資料夾","ok"); });
+}
+
+async function openMail(entry, store){
+  try{ await api("/api/open_mail",{entry_id:entry, store_id:store}); }
+  catch(e){ toast("未能打開郵件", e.message, "warn"); }
+}
+
+/* ================= 全部工單 ================= */
+function listRows(){
+  const L = S.list, n = nowMs(), q = L.q.trim().toLowerCase();
+  let rows = tickets();
+  if(L.phase!=="all") rows = rows.filter(t=>t.phase===L.phase || (L.phase==="late" && t.met===false));
+  else rows = rows.filter(t=>t.phase!=="ignored");
+  if(L.who!=="all") rows = rows.filter(t=>(t.assignee||"")===(L.who==="__none"?"":L.who));
+  if(L.range!=="all"){ const days=+L.range; const from = days===1 ? new Date(new Date(n).toDateString()).getTime() : n-days*864e5;
+    rows = rows.filter(t=>(t.startMs||t.respMs||0)>=from || ["reply","assign","progress","waiting"].includes(t.phase)); }
+  if(q) rows = rows.filter(t=>[t.id,t.subject,t.company,t.requester,t.requester_email,t.assignee,t.note].join(" ").toLowerCase().includes(q));
+  const key = {start:t=>t.startMs||0, id:t=>+t.id||0, cust:t=>(t.company||t.requester||"").toLowerCase(), subj:t=>(t.subject||"").toLowerCase(),
+    resp:t=>t.respMin==null?1e9:t.respMin, phase:t=>Object.keys(PHASE).indexOf(t.phase), who:t=>(t.assignee||"~")}[L.sort];
+  rows.sort((a,b)=>{ const x=key(a), y=key(b); return (x<y?-1:x>y?1:0)*(L.asc?1:-1); });
+  return rows;
+}
+function renderList(){
+  const L = S.list, c = cfg(), rows = listRows();
+  const whoOpts = [...new Set([...c.colleagues.map(x=>x.name), ...tickets().map(t=>t.assignee).filter(Boolean)])];
+  const th = (k,l) => `<th data-sort="${k}" class="${L.sort===k?"sorted"+(L.asc?" asc":""):""}">${l}</th>`;
+  $("#page-list").innerHTML = `<div class="card">
+    <div class="toolbar">
+      <input class="inp search" id="lq" placeholder="🔍 搜尋工單號碼、客戶、主旨、同事、備註…" value="${esc(L.q)}">
+      <select class="inp" id="lphase"><option value="all">全部狀態</option>${Object.entries(PHASE).map(([k,v])=>`<option value="${k}" ${L.phase===k?"selected":""}>${v[0]}</option>`).join("")}<option value="late" ${L.phase==="late"?"selected":""}>首次回覆超時</option></select>
+      <select class="inp" id="lwho"><option value="all">全部同事</option><option value="__none" ${L.who==="__none"?"selected":""}>未分派</option>${whoOpts.map(w=>`<option ${L.who===w?"selected":""}>${esc(w)}</option>`).join("")}</select>
+      <select class="inp" id="lrange">${[["1","今日"],["7","最近 7 日"],["30","最近 30 日"],["all","全部"]].map(([k,l])=>`<option value="${k}" ${L.range===k?"selected":""}>${l}</option>`).join("")}</select>
+      <button class="btn" onclick="exportCsv()">⬇ 匯出 CSV</button>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr>${th("id","工單")}${th("cust","客戶")}${th("subj","主旨")}${th("start","收到")}${th("resp","首次回覆")}${th("phase","狀態")}${th("who","負責同事")}</tr></thead>
+    <tbody>${rows.slice(0,500).map(t=>`<tr onclick="openDrawer('${esc(t.id)}')">
+      <td><span class="tid">${esc(tidLabel(t))}</span></td>
+      <td><b>${esc(t.company||t.requester||"—")}</b><div class="meta" style="margin:0">${esc(t.company?t.requester:t.requester_email)}</div></td>
+      <td style="max-width:360px">${esc(t.subject)}${t.custNew?` <span class="pill red">● 客戶新回覆</span>`:""}</td>
+      <td class="sm">${whenTxt(t.startMs)}</td>
+      <td class="sm">${t.phase==="reply"?`<span class="pill l${t.level}"><span data-cd="${t.startMs}">—</span></span>`:t.respMin!=null?`<span class="pill ${t.met?"green":"red"}">${Math.round(t.respMin)} 分鐘</span>`:t.respMs?"已回覆":"—"}${t.first_responder?`<div class="meta" style="margin:2px 0 0">✉ ${esc(t.first_responder)}</div>`:""}</td>
+      <td><span class="pill ${PHASE[t.phase][1]}">${PHASE[t.phase][0]}</span></td>
+      <td>${t.assignee?`<span class="who">${avatar(t.assignee)}${esc(t.assignee)}</span>`:`<span class="meta">—</span>`}</td></tr>`).join("")}</tbody></table></div>
+    <div class="count-line">共 ${rows.length} 張工單${rows.length>500?"（只顯示前 500 張）":""}</div></div>`;
+  const re = () => { renderList(); };
+  $("#lq").oninput = e => { L.q = e.target.value; clearTimeout(S.lqT); S.lqT = setTimeout(()=>{ const pos=e.target.selectionStart; renderList(); const i=$("#lq"); i.focus(); i.setSelectionRange(pos,pos); }, 200); };
+  $("#lphase").onchange = e => { L.phase=e.target.value; re(); };
+  $("#lwho").onchange = e => { L.who=e.target.value; re(); };
+  $("#lrange").onchange = e => { L.range=e.target.value; re(); };
+  document.querySelectorAll("th[data-sort]").forEach(h=>h.onclick=()=>{ const k=h.dataset.sort; if(L.sort===k) L.asc=!L.asc; else { L.sort=k; L.asc=false; } re(); });
+  tick();
+}
+function exportCsv(){
+  const rows = listRows();
+  const head = ["工單","客戶","聯絡人","電郵","主旨","收到時間","首次回覆時間","首次回覆用時(分鐘)","SLA","首次回覆同事","辨認依據","狀態","負責同事","備註"];
+  const f = ms => ms? new Date(ms).toLocaleString("zh-HK",{hour12:false}) : "";
+  const lines = [head].concat(rows.map(t=>[t.mail?"(未有工單)":t.id,t.company,t.requester,t.requester_email,t.subject,f(t.startMs),f(t.respMs),
+    t.respMin==null?"":t.respMin.toFixed(1), t.met==null?"":(t.met?"達標":"超時"), t.first_responder||"", t.first_responder_how||"",
+    PHASE[t.phase][0], t.assignee||"", t.note||""]));
+  const csv = "﻿" + lines.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download = "PulseDesk_工單_"+dayKey(nowMs())+".csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ================= 統計 ================= */
+function renderStats(){
+  const c = cfg(), n = nowMs(), all = tickets().filter(t=>!t.ignored);
+  const days = []; for(let i=6;i>=0;i--){ const d=new Date(n-i*864e5); days.push(dayKey(d.getTime())); }
+  const inRange = all.filter(t=>t.startMs && days.includes(dayKey(t.startMs)));
+  const per = days.map(d=>{ const ts_ = inRange.filter(t=>dayKey(t.startMs)===d);
+    return {d, met:ts_.filter(t=>t.met===true).length, late:ts_.filter(t=>t.met===false || (t.phase==="reply"&&t.level===3)).length,
+      pend:ts_.filter(t=>t.met==null && !(t.phase==="reply"&&t.level===3)).length}; });
+  const resp = inRange.filter(t=>t.respMin!=null);
+  const met = resp.filter(t=>t.met).length, late = per.reduce((s,x)=>s+x.late,0);
+  const rate = (met+late) ? Math.round(met/(met+late)*100) : null;
+  const avg = resp.length ? resp.reduce((s,t)=>s+t.respMin,0)/resp.length : null;
+  const sorted = resp.map(t=>t.respMin).sort((a,b)=>a-b);
+  const p90 = sorted.length ? sorted[Math.min(sorted.length-1, Math.floor(sorted.length*0.9))] : null;
+
+  // 每日達標柱狀圖
+  const W=560, H=220, pl=30, pb=26, pt=22, bw=(W-pl-10)/7;
+  const maxY = Math.max(4, Math.ceil(Math.max(...per.map(x=>x.met+x.late+x.pend))*1.1));
+  const y = v => (H-pb) - v/maxY*(H-pb-pt);
+  let bars = "";
+  for(let g=0; g<=4; g++){ const v=Math.round(maxY*g/4); bars += `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#e4e8f0"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#94a3b8">${v}</text>`; }
+  per.forEach((x,i)=>{ const x0 = pl+i*bw+bw*0.18, w = bw*0.64; let base = 0;
+    [["met","#16a34a"],["late","#dc2626"],["pend","#cbd5e1"]].forEach(([k,col])=>{ const v=x[k]; if(!v) return;
+      bars += `<rect x="${x0}" y="${y(base+v)}" width="${w}" height="${y(base)-y(base+v)}" fill="${col}" rx="2"><title>${x.d} ${({met:"達標",late:"超時",pend:"未計"})[k]} ${v}</title></rect>`; base+=v; });
+    const tot=x.met+x.late; if(tot) bars += `<text x="${x0+w/2}" y="${y(base)-5}" text-anchor="middle" font-size="11" fill="#334155" font-weight="600">${Math.round(x.met/tot*100)}%</text>`;
+    bars += `<text x="${x0+w/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="#64748b">${x.d.slice(5).replace("-","/")}${i===6?" 今日":""}</text>`; });
+
+  // 回覆時間分佈
+  const buckets = [[0,5,"0–5"],[5,c.warning_minutes,"5–"+c.warning_minutes],[c.warning_minutes,c.sla_minutes,c.warning_minutes+"–"+c.sla_minutes],[c.sla_minutes,30,c.sla_minutes+"–30"],[30,1e9,"30+"]];
+  const bc = buckets.map(([a,b])=>resp.filter(t=>t.respMin>=a && t.respMin<b).length);
+  const bmax = Math.max(1,...bc);
+  const H2=200, bw2=(W-pl-10)/buckets.length, y2 = v => (H2-pb) - v/bmax*(H2-pb-pt-10);
+  let hist = "";
+  buckets.forEach((b,i)=>{ const x0 = pl+i*bw2+bw2*0.15, w=bw2*0.7, col = b[0]>=c.sla_minutes ? "#dc2626" : b[0]>=c.warning_minutes ? "#d97706" : "#2563eb";
+    hist += `<rect x="${x0}" y="${y2(bc[i])}" width="${w}" height="${(H2-pb)-y2(bc[i])}" fill="${col}" rx="3"/><text x="${x0+w/2}" y="${y2(bc[i])-5}" text-anchor="middle" font-size="12" font-weight="600" fill="#334155">${bc[i]}</text>
+      <text x="${x0+w/2}" y="${H2-8}" text-anchor="middle" font-size="11" fill="#64748b">${b[2]} 分</text>`; });
+  hist += `<line x1="${pl}" x2="${W}" y1="${H2-pb}" y2="${H2-pb}" stroke="#cbd5e1"/>`;
+
+  // 今日每小時
+  const hours = Array.from({length:24},(_,h)=>all.filter(t=>isToday(t.startMs) && new Date(t.startMs).getHours()===h).length);
+  let h0 = hours.findIndex(v=>v>0); if(h0<0||h0>8) h0 = 8; let h1 = 23; while(h1>19 && !hours[h1]) h1--;
+  const hs = hours.slice(h0,h1+1), hmax = Math.max(1,...hs), bw3=(W-pl-10)/hs.length, y3 = v => (H2-pb) - v/hmax*(H2-pb-pt-10);
+  let hourly = `<line x1="${pl}" x2="${W}" y1="${H2-pb}" y2="${H2-pb}" stroke="#cbd5e1"/>`;
+  hs.forEach((v,i)=>{ const x0=pl+i*bw3+bw3*0.15, w=bw3*0.7; const cur = h0+i===new Date(n).getHours();
+    hourly += `<rect x="${x0}" y="${y3(v)}" width="${w}" height="${(H2-pb)-y3(v)}" fill="${cur?"#1d4ed8":"#93b4f5"}" rx="2"><title>${h0+i}:00 ${v} 張</title></rect>${v?`<text x="${x0+w/2}" y="${y3(v)-4}" text-anchor="middle" font-size="11" fill="#334155">${v}</text>`:""}
+      <text x="${x0+w/2}" y="${H2-8}" text-anchor="middle" font-size="10.5" fill="#64748b">${h0+i}</text>`; });
+
+  // 同事工作量
+  const names = [...new Set([...c.colleagues.map(x=>x.name), ...all.map(t=>t.assignee).filter(Boolean)])];
+  const load = names.map(nm=>({nm, open:all.filter(t=>t.assignee===nm && (t.phase==="progress"||t.phase==="waiting")).length,
+    done:all.filter(t=>t.assignee===nm && t.phase==="resolved" && t.statusMs && n-t.statusMs<7*864e5).length})).sort((a,b)=>b.open-a.open);
+  const lmax = Math.max(1,...load.map(x=>x.open+x.done));
+
+  // 首次回覆同事
+  const rmap = {};
+  inRange.filter(t=>t.respMs!=null && !t.unknownResp).forEach(t=>{ const k = t.first_responder || "（未能辨認）";
+    const o = rmap[k] ||= {nm:k, n:0, met:0, late:0, sum:0, cnt:0};
+    o.n++; if(t.met===true) o.met++; if(t.met===false) o.late++; if(t.respMin!=null){ o.sum+=t.respMin; o.cnt++; } });
+  const rlist = Object.values(rmap).sort((a,b)=>(a.nm==="（未能辨認）")-(b.nm==="（未能辨認）") || b.n-a.n);
+  const rmax = Math.max(1,...rlist.map(x=>x.n));
+  $("#page-stats").innerHTML = `<div class="kpis">
+      <div class="card kpi t-blue"><div class="l">7 日工單</div><div class="v num">${inRange.length}</div><div class="s">已首次回覆 ${resp.length} 張</div></div>
+      <div class="card kpi t-ok"><div class="l">7 日達標率</div><div class="v num">${rate==null?"—":rate+"%"}</div><div class="s">${met} 張在 ${c.sla_minutes} 分鐘內回覆</div><div class="meter"><i style="width:${rate||0}%;background:var(--ok)"></i></div></div>
+      <div class="card kpi t-warn"><div class="l">平均首次回覆</div><div class="v num">${avg==null?"—":avg.toFixed(1)}<small style="font-size:14px"> 分鐘</small></div><div class="s">90% 工單在 ${p90==null?"—":Math.round(p90)+" 分鐘"}內回覆</div></div>
+      <div class="card kpi t-bad"><div class="l">7 日超時</div><div class="v num">${late}</div><div class="s">超過 ${c.sla_minutes} 分鐘才首次回覆</div></div></div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="card chart"><h3>每日首次回覆達標情況</h3><div class="hint"><span style="color:#16a34a">■</span> 達標　<span style="color:#dc2626">■</span> 超時　<span style="color:#94a3b8">■</span> 未計（未能計算或仍在計時）</div><svg viewBox="0 0 ${W} ${H}">${bars}</svg></div>
+      <div class="card chart"><h3>首次回覆時間分佈（7 日）</h3><div class="hint">每張工單由收到至首次回覆的分鐘數</div><svg viewBox="0 0 ${W} ${H2}">${hist}</svg></div>
+      <div class="card chart"><h3>今日每小時新工單</h3><div class="hint">深色為目前時段，可用來安排人手</div><svg viewBox="0 0 ${W} ${H2}">${hourly}</svg></div>
+      <div class="card chart"><h3>同事工作量</h3><div class="hint"><span style="color:#2563eb">■</span> 跟進中 / 等待客戶　<span style="color:#86efac">■</span> 7 日內已解決</div>
+        ${load.length? load.map(x=>`<div class="hbar" style="grid-template-columns:150px 1fr 60px"><span class="who">${avatar(x.nm)}${esc(x.nm)}</span><div class="track"><i style="width:${x.open/lmax*100}%;background:#2563eb"></i><i style="width:${x.done/lmax*100}%;background:#86efac"></i></div><span class="num meta" style="margin:0">${x.open} / ${x.done}</span></div>`).join("")
+          : `<div class="empty">未有同事資料。請在「設定」加入同事名單。</div>`}</div>
+      <div class="card chart" style="grid-column:1 / -1"><h3>誰首次回覆了客戶（7 日）</h3><div class="hint">用 support@ / servicedesk@ 回覆按簽名辨認，用自己信箱回覆按寄件人辨認　<span style="color:#16a34a">■</span> 達標　<span style="color:#dc2626">■</span> 超時　<span style="color:#cbd5e1">■</span> 未計</div>
+        ${rlist.length? rlist.map(x=>`<div class="hbar" style="grid-template-columns:150px 1fr 190px"><span class="who">${x.nm==="（未能辨認）"?"":avatar(x.nm)}${esc(x.nm)}</span>
+          <div class="track"><i style="width:${x.met/rmax*100}%;background:#16a34a"></i><i style="width:${x.late/rmax*100}%;background:#dc2626"></i><i style="width:${(x.n-x.met-x.late)/rmax*100}%;background:#cbd5e1"></i></div>
+          <span class="num meta" style="margin:0">${x.n} 張 · 達標 ${x.met}${x.cnt?` · 平均 ${(x.sum/x.cnt).toFixed(1)} 分`:""}</span></div>`).join("")
+          : `<div class="empty">7 日內未有偵測到回覆。</div>`}</div>
+    </div>`;
+}
+
+/* ================= Outlook 分類 ================= */
+function renderCats(){
+  const C = S.cats, data = S.data.categories || {master:[], items:[]}, n = nowMs();
+  const master = data.master || [], q = C.q.trim().toLowerCase();
+  const allTk = {}; tickets().forEach(t=>allTk[t.id]=t);
+  let items = (data.items||[]).filter(it=>!it.complete);
+  if(C.flagged) items = items.filter(it=>it.flagged);
+  if(q) items = items.filter(it=>[it.subject,it.sender,it.categories.join(" "),it.ticket_id].join(" ").toLowerCase().includes(q));
+  const counts = {}; items.forEach(it=>it.categories.forEach(c=>counts[c]=(counts[c]||0)+1));
+  const cats = master.filter(m=>counts[m.name]);
+  const shown = C.only ? cats.filter(m=>m.name===C.only) : cats;
+  const sortFn = C.sort==="new" ? (a,b)=>(ts(b.received)||0)-(ts(a.received)||0) : (a,b)=>(ts(a.received)||0)-(ts(b.received)||0);
+  const ageCls = d => d==null ? "a0" : d>=7 ? "a2" : d>=3 ? "a1" : "a0";
+  const ageTxt = d => d==null ? "" : d<1 ? Math.max(1,Math.round(d*24))+" 小時" : Math.floor(d)+" 日";
+  const row = (it, color) => { const d = ageDays(ts(it.received)); const due = ts(it.due); const overdue = due && due < n;
+    const tk = it.ticket_id && allTk[it.ticket_id];
+    const tkHtml = it.ticket_id ? (tk ? `<a href="#" onclick="event.stopPropagation();openDrawer('${esc(it.ticket_id)}');return false"><span class="pill ${PHASE[tk.phase][1]}">#${esc(it.ticket_id)} · ${PHASE[tk.phase][0]}${tk.assignee?" · "+esc(tk.assignee):""}</span></a>`
+        : `<a href="${fdLink(it.ticket_id)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="pill blue">#${esc(it.ticket_id)} ↗</span></a>`) : "";
+    const others = it.categories.length>1 ? catChips(it.categories.filter(c=>c!==C.cur).map(c=>({name:c,color:(master.find(m=>m.name===c)||{}).color||"#9ca3af"}))) : "";
+    return `<div class="ci ${it.unread?"unread":""}" onclick="openMail('${esc(it.entry_id)}','${esc(it.store_id||"")}')" title="在 Outlook 打開">
+      <span class="bar" style="background:${color}"></span>
+      <div class="main"><div class="s">${esc(it.subject||"(無主旨)")}</div>
+        <div class="m">${esc(it.sender||"")}${it.received?" · "+whenTxt(ts(it.received)):""}${it.flagged?` · <span style="color:${overdue?"var(--bad)":"var(--bad)"}">⚑</span>`:""}${due?`<span style="color:${overdue?"var(--bad)":"var(--muted)"};font-weight:${overdue?700:400}">${overdue?"已過期限 ":"期限 "}${md(due)}</span>`:""} ${tkHtml} ${others}</div></div>
+      <span class="age ${ageCls(d)}">${ageTxt(d)}</span></div>`; };
+  let html = `<div class="card toolbar" style="margin-bottom:12px;border-bottom:1px solid var(--line)">
+      <input class="inp search" id="cq" placeholder="🔍 搜尋主旨、寄件人、Tkt 號碼…" value="${esc(C.q)}">
+      <select class="inp" id="csort"><option value="old" ${C.sort==="old"?"selected":""}>最舊優先（等最耐）</option><option value="new" ${C.sort==="new"?"selected":""}>最新優先</option></select>
+      <label class="chk"><input type="checkbox" id="cflag" ${C.flagged?"checked":""}> 只看有旗標</label>
+      <span class="meta" style="margin:0 0 0 auto">${data.scanned_at?"更新於 "+whenTxt(ts(data.scanned_at))+(S.data.health.cat_live?" · 即時更新":""):"讀取中…"} · <a href="#" onclick="go('settings');return false">${data.folders||0} 個資料夾</a></span>
+      <button class="btn sm" onclick="refreshCats()">⟳ 重新讀取分類</button></div>`;
+  if(data.error) html += `<div class="banner bad">⚠ 讀取 Outlook 分類時出錯：${esc(data.error)}</div>`;
+  html += `<div class="cat-chips"><button class="cchip ${!C.only?"on":""}" onclick="S.cats.only='';renderCats()">全部 <span class="n">${items.length}</span></button>
+    ${cats.map(m=>`<button class="cchip ${C.only===m.name?"on":""}" data-cat="${esc(m.name)}" onclick="S.cats.only=this.dataset.cat;renderCats()"><span class="sw" style="background:${m.color}"></span>${esc(m.name)} <span class="n">${counts[m.name]}</span></button>`).join("")}</div>`;
+  if(!shown.length){
+    html += `<div class="card empty">${data.scanned_at ? (q||C.flagged ? "沒有符合條件的郵件" : "<b>未找到有分類的郵件</b>在 Outlook 為郵件設定分類（Categorize）後，會自動在這裡出現。") : "正在讀取 Outlook 分類…"}</div>`;
+  } else {
+    html += `<div class="cat-grid">${shown.map(m=>{ C.cur = m.name; const list = items.filter(it=>it.categories.includes(m.name)).sort(sortFn);
+      const old = list.filter(it=>(ageDays(ts(it.received))||0)>=7).length;
+      return `<div class="card cat-panel"><div class="cat-h" style="border-top:4px solid ${m.color}"><span class="sw" style="background:${m.color}"></span>${esc(m.name)}${old?`<span class="pill red">${old} 項超過 7 日</span>`:""}<span class="n">${list.length}</span></div>
+        <div class="cat-body">${list.map(it=>row(it, m.color)).join("")}</div></div>`; }).join("")}</div>`;
+  }
+  $("#page-cats").innerHTML = html;
+  $("#cq").oninput = e => { C.q = e.target.value; clearTimeout(S.cqT); S.cqT = setTimeout(()=>{ const pos=e.target.selectionStart; renderCats(); const i=$("#cq"); i.focus(); i.setSelectionRange(pos,pos); }, 200); };
+  $("#csort").onchange = e => { C.sort = e.target.value; renderCats(); };
+  $("#cflag").onchange = e => { C.flagged = e.target.checked; renderCats(); };
+}
+async function refreshCats(){
+  try{ await api("/api/sync",{cats:true}); toast("正在重新讀取 Outlook 分類","幾秒後自動更新"); setTimeout(refresh, 4000); }
+  catch(e){ toast("失敗", e.message, "bad"); }
+}
+
+/* ================= 系統狀態 ================= */
+function renderHealth(){
+  const h = S.data.health, c = cfg(), n = nowMs(), lastOk = ts(h.last_ok);
+  const tot = h.totals||{};
+  const card = (l,v,s,dot) => `<div class="card hcard"><div class="l">${l}</div><div class="v">${dot?`<span class="dot ${dot}"></span>`:""}${v}</div><div class="s">${s}</div></div>`;
+  const st = scanState(), conn = [st.label, st.cls];
+  $("#page-health").innerHTML = `
+    <div class="hgrid">
+      ${card("Outlook 連線", conn[0], (h.outlook_user? "帳戶："+esc(h.outlook_user)+"<br>" : "")+(h.instant? "✓ 新郵件即時偵測已啟用"+(h.last_instant?"（上次 "+whenTxt(ts(h.last_instant))+"）":"") : "即時偵測未啟用，使用定時掃描"), conn[1])}
+      ${card("上次成功掃描", lastOk? whenTxt(lastOk)+`<span class="meta" style="margin:0;font-size:13px;font-weight:500">（${durTxt((n-lastOk)/60000)}前）</span>` : "—", `${st.busy? "<b>"+st.busy+"</b><br>" : ""}${h.scan_kind||"掃描"}：列出 ${h.rows_read??0} 封，打開 ${h.scanned??0} 封新郵件（${h.new_events??0} 封與工單有關），用時 ${h.duration??"—"} 秒<br>新郵件即時處理；每 ${c.scan_interval_seconds} 秒後備檢查，每 ${c.deep_scan_minutes} 分鐘完整覆查<br>資料庫已記住 ${h.remembered??0} 封已處理郵件，不會重複打開`)}
+      ${card("Outlook 分類", (S.data.categories.items||[]).length+" 項", `${(h.cat_folders||[]).length} 個資料夾 · ${h.cat_live?"✓ 改分類時即時更新":"定時更新"}<br>上次完整讀取 ${h.cat_refresh_at?whenTxt(ts(h.cat_refresh_at))+"（"+(h.cat_duration??"—")+" 秒）":"—"} · 每 ${c.category_refresh_minutes} 分鐘`)}
+      ${card("累計識別", Object.values(tot).reduce((a,b)=>a+b,0)+" 封", Object.entries(KIND).map(([k,v])=>`${v[0]}：${tot[k]||0}`).join("<br>"))}
+      ${card("最近錯誤", h.last_error? `<span style="color:var(--bad);font-size:15px">${esc(h.last_error)}</span>`:"沒有", h.last_error_at? "於 "+whenTxt(ts(h.last_error_at)):"")}
+      <div class="card hcard"><div class="l">掃描中的資料夾 <a href="#" onclick="go('settings');return false" style="font-weight:500">（在設定修改）</a></div><div class="s mono">${(h.folders||[]).map(f=>{ const e=(h.folder_errors||{})[f.replace(/  \(寄件備份\)$/,"")]; return esc(f)+(e?`<br><span style="color:var(--bad);font-family:inherit">⚠ ${esc(e.error)}（${whenTxt(ts(e.at))}）</span>`:""); }).join("<br>")||"—"}</div>
+        <div class="row" style="margin-top:10px"><button class="btn sm" onclick="doSync(false)">⟳ 立即同步</button><button class="btn sm" onclick="if(confirm('清除掃描紀錄並重新讀取最近 ${c.days_back} 日的郵件？\n工單、分派及備註不會刪除，但可能需要數分鐘。'))doSync(true)">完整重新掃描</button><button class="btn sm" onclick="testAlert()">🔔 測試提醒</button></div></div>
+    </div>
+    <div class="sec-h"><h2>最近識別的郵件</h2><span class="hint">用來確認 PulseDesk 有否正確讀取你的 Outlook 郵件</span></div>
+    <div class="card tbl-wrap">${(S.data.recent||[]).length? `<table><thead><tr><th>時間</th><th>類型</th><th>寄件人</th><th>主旨</th><th>工單</th></tr></thead><tbody>${S.data.recent.map(m=>{ const k=KIND[m.kind]||[m.kind,"•","#eef1f6","#64748b"]; const tk=byId(m.ticket_id);
+      return `<tr ${tk?`onclick="openDrawer('${esc(m.ticket_id)}')"`:'style="cursor:default"'}><td class="sm">${whenTxt(ts(m.time))}</td><td><span class="pill" style="background:${k[2]};color:${k[3]}">${k[0]}</span>${m.replier?`<div class="meta" style="margin:3px 0 0">✉ ${esc(m.replier)}</div>`:(m.replier_how?`<div class="meta" style="margin:3px 0 0">${esc(m.replier_how)}</div>`:"")}</td>
+      <td><b>${esc(m.sender_name||"")}</b><div class="meta" style="margin:0">${esc(m.sender||"")}</div></td><td>${esc(m.subject)}</td><td class="sm">${tk?esc(tidLabel(tk)):m.ticket_id?"#"+esc(m.ticket_id):"—"}</td></tr>`; }).join("")}</tbody></table>`
+      : `<div class="empty">未有識別到的郵件。請確認 Outlook Classic 已開啟，以及「設定」中的支援信箱地址正確。</div>`}</div>
+    <div class="sec-h"><h2>修正紀錄</h2><span class="hint">你在 PulseDesk 內修正過的判斷</span>
+      <button class="btn sm primary" style="margin-left:auto" onclick="diagDlg()">⬇ 匯出診斷資料</button></div>
+    <div class="card tbl-wrap">${(S.data.corrections||[]).length? `<table><thead><tr><th>時間</th><th>修正</th><th>詳情</th><th>主旨</th><th>寄件人</th></tr></thead><tbody>${S.data.corrections.map(c=>{ const tk = byId(c.ticket_id);
+      return `<tr ${tk?`onclick="openDrawer('${esc(c.ticket_id)}')"`:'style="cursor:default"'}><td class="sm">${whenTxt(ts(c.time))}</td><td><span class="pill amber">${esc(c.action)}</span></td><td>${esc(c.detail)}</td><td>${esc(c.subject)}</td><td class="sm">${esc(c.sender)}</td></tr>`; }).join("")}</tbody></table>`
+      : `<div class="empty">未有修正紀錄。判斷錯誤時，可在工單詳情的「修正判斷」修正。</div>`}</div>
+    <div class="sec-h"><h2>偵測規則</h2></div>
+    <div class="card rules">
+      <b>開始計時</b>：客戶寄到 ${c.support_addresses.map(a=>`<code>${esc(a)}</code>`).join(" / ")} 的郵件一到就開始計時（Outlook 新郵件事件，即時偵測）。同一客戶以相同主旨再來信，不會重新計時。<br>
+      <b>合併 Freshdesk 工單</b>：收到 <code>… has created a new Freshdesk ticket: …</code> / <code>Ticket Received - …</code> 後，按主旨及客戶電郵合併到同一張工單，工單號碼取自 <code>/helpdesk/tickets/123456</code> 連結。計時仍由客戶寄信的時間開始。<br>
+      <b>停止計時</b>：由 ${c.internal_domains.map(d=>`<code>@${esc(d)}</code>`).join(" ")} 寄給客戶的郵件：Freshdesk 回覆（例如 <code>Re: Tkt#254333</code>），或同事直接用 Outlook 回覆同一主旨${c.scan_sent_items?"（包括你的寄件備份）":""}。<code>Ticket Received</code> 自動回覆及只寄給內部的通知不算回覆。<br>
+      <b>客戶再來信</b>：主旨含 <code>Tkt#123456</code> 或 <code>[#123456]</code> 的客戶郵件，只會標示「客戶新回覆」，不計首次回覆時限。<br>
+      <b>忽略</b>：寄件人包含 ${(c.ignore_senders||[]).map(x=>`<code>${esc(x)}</code>`).join(" ")||"—"}，或主旨包含 ${(c.ignore_subjects||[]).map(x=>`<code>${esc(x)}</code>`).join(" ")||"—"} 的郵件。<br>
+      <b>私隱</b>：PulseDesk 只讀取郵件，資料只儲存在你的電腦（%APPDATA%\\PulseDesk），不會上傳到任何地方。
+    </div>`;
+}
+async function dismissMail(id){ try{ await api("/api/dismiss_mail",{entry_id:id}); await refresh(); }catch(e){ toast("失敗",e.message,"bad"); } }
+
+/* ================= 設定 ================= */
+function renderSettings(){
+  const c = cfg();
+  const num = (k,l,s) => `<div class="fld"><label>${l}</label><input class="inp" type="number" data-k="${k}" value="${esc(c[k])}"><small>${s}</small></div>`;
+  const chk = (k,l) => `<label class="chk"><input type="checkbox" data-k="${k}" ${c[k]?"checked":""}> ${l}</label>`;
+  $("#page-settings").innerHTML = `
+    <div class="card form"><h3>SLA 時限</h3><div class="hint">首次回覆倒數及顏色提示</div><div class="fgrid">
+      ${num("sla_minutes","首次回覆時限（分鐘）","超過即「已超時」")}
+      ${num("warning_minutes","警告（分鐘）","卡片轉黃色並提醒")}
+      ${num("critical_minutes","緊急（分鐘）","卡片轉橙色並再次提醒")}
+      ${num("assign_minutes","分派時限（分鐘）","首次回覆後多久未分派會標紅")}
+      ${num("assign_queue_hours","待分派保留（小時）","回覆後超過這個時間仍未分派，移出「待分派」欄，建議 24")}
+      ${num("unverified_hours","需確認（小時）","超過此時間仍未偵測到回覆，改為「需確認」")}</div></div>
+    <div class="card form" style="margin-top:12px"><h3>郵件偵測</h3><div class="hint">PulseDesk 如何在 Outlook 找到客戶郵件及 Freshdesk 郵件</div><div class="fgrid">
+      <div class="fld"><label>公司內部網域</label><input class="inp" id="s-dom" value="${esc(c.internal_domains.join(", "))}"><small>用逗號分隔，例如 premier-technology.com</small></div>
+      <div class="fld"><label>客戶寄信的支援信箱</label><textarea class="inp" id="s-sup" rows="3">${esc(c.support_addresses.join("\n"))}</textarea><small>每行一個</small></div>
+      <div class="fld"><label>Freshdesk 網址</label><input class="inp" id="s-fd" value="${esc(c.freshdesk_url)}"><small>用於「在 Freshdesk 打開」按鈕</small></div>
+      ${num("scan_interval_seconds","後備掃描間隔（秒）","新郵件由 Outlook 即時通知；這只是後備，建議 60 秒")}
+      ${num("days_back","掃描最近幾日的郵件","建議 3 日")}
+      <div class="fld"><label>忽略寄件人（每行一個）</label><textarea class="inp" id="s-igs" rows="4">${esc((c.ignore_senders||[]).join("\n"))}</textarea><small>寄件人電郵包含這些字就忽略，例如 lenovo.com、noreply</small></div>
+      <div class="fld"><label>忽略主旨（每行一個）</label><textarea class="inp" id="s-igj" rows="4">${esc((c.ignore_subjects||[]).join("\n"))}</textarea><small>主旨包含這些字就忽略，例如 please ignore</small></div>
+      ${num("deep_scan_minutes","完整覆查間隔（分鐘）","補回 Outlook 離線後才同步的郵件，建議 120")}
+    </div></div>
+    <div class="card form" style="margin-top:12px"><h3>掃描的資料夾</h3>
+      <div class="hint">預設只掃描你自己信箱（${esc(S.data.health.outlook_user||"預設信箱")}）的收件匣${c.scan_sent_items?"及寄件備份":""}。需要監控共用信箱時才勾選其他資料夾。</div>
+      <div id="folderPick">${folderPickHtml("scan")}</div>
+      <div class="row" style="margin-top:12px;gap:18px">${chk("include_subfolders","同時掃描所選資料夾的子資料夾")}${chk("scan_sent_items","使用預設時包括寄件備份（偵測直接用 Outlook 回覆客戶）")}</div></div>
+    <div class="card form" style="margin-top:12px"><h3>Outlook 分類</h3><div class="hint">取消勾選的分類不會在「Outlook 分類」頁顯示</div>
+      <div class="row" style="gap:14px" id="s-cats">${(S.data.categories.master||[]).map(m=>`<label class="chk"><input type="checkbox" data-cat="${esc(m.name)}" ${(c.hidden_categories||[]).includes(m.name)?"":"checked"}><span class="mini-cat"><i style="background:${m.color}"></i>${esc(m.name)}</span></label>`).join("") || `<span class="meta">未讀取到 Outlook 分類</span>`}</div>
+      <h4 style="margin:16px 0 6px;font-size:14px">讀取分類的資料夾</h4>
+      <div class="hint" style="margin-bottom:8px">預設讀取收件匣及其子資料夾，但不包括超過 5,000 封的大資料夾（例如 Alerts、Mailbox Archive），以免 Outlook 變慢。</div>
+      <div id="catFolderPick">${folderPickHtml("cat")}</div>
+      <div class="fgrid" style="margin-top:12px">${num("category_refresh_minutes","分類完整更新間隔（分鐘）","你改分類時會即時更新；這只是後備，建議 15")}</div></div>
+    <div class="card form" style="margin-top:12px"><h3>同事名單及簽名</h3>
+      <div class="hint">用於分派及辨認誰回覆了客戶。<b>用 support@ / servicedesk@ 回覆</b>時按「簽名」辨認（簽名要獨立成行，多行簽名請分行輸入，例如 Thanks 換行 Regards）；<b>用自己信箱回覆</b>時按電郵或名稱辨認，不看簽名。填寫電郵後，分派時亦可開啟 Outlook 通知草稿。</div>
+      <div class="col-head"><span>名稱</span><span>自己的電郵（可選）</span><span>使用 support@ / servicedesk@ 時的簽名</span><span></span></div>
+      <div id="colRows">${c.colleagues.map(colRow).join("")}</div>
+      <button class="btn sm" onclick="addCol()">＋ 加入同事</button>
+      <h4 style="margin:18px 0 4px;font-size:14px">測試簽名辨認</h4>
+      <div class="meta" style="margin:0">貼上一封用 support@ / servicedesk@ 寄出的回覆內容（包括下面引用的舊郵件亦可），看看 PulseDesk 會認為是誰回覆。使用已儲存的設定。</div>
+      <div class="sig-test"><textarea class="inp" id="sigText" rows="5" placeholder="Hi Iyrus&#10;&#10;We will check and get back to you&#10;&#10;Thank you"></textarea>
+        <div><input class="inp" id="sigSender" style="width:100%" placeholder="寄件人電郵（留空 = support@）"><button class="btn sm primary" id="sigTestBtn" style="margin-top:8px" onclick="testSig()">測試</button></div></div>
+      <div id="sigRes"></div></div>
+    <div class="card form" style="margin-top:12px"><h3>提醒</h3><div class="hint">工單到達警告、緊急及超時的時候</div>
+      <div class="row" style="gap:18px">${chk("sound","播放提示聲")}${chk("desktop_popup","PulseDesk 視窗關閉時，用 Windows 彈出視窗提醒")}</div>
+      <div class="row" style="margin-top:12px"><button class="btn sm" onclick="askNotif()">🔔 啟用桌面通知</button><button class="btn sm" onclick="testAlert()">測試提醒</button></div></div>
+    <div class="save-bar"><button class="btn" onclick="renderSettings()">還原</button><button class="btn primary" onclick="saveSettings()">儲存設定</button></div>`;
+  checkDupSig();
+}
+function folderDefaults(kind){
+  const c = cfg(), fl = S.folderList||[];
+  if(kind==="scan") return fl.filter(f=>f.default && (f.kind==="inbox" || (f.kind==="sent" && c.scan_sent_items))).map(f=>f.path);
+  return (S.data.health.cat_folders||[]);
+}
+function folderPickHtml(kind){
+  const c = cfg(), sel = (kind==="scan" ? c.scan_folders : c.category_folders)||[];
+  if(!S.folderList){
+    const cur = sel.length ? sel.map(esc).join("、") : kind==="scan"
+      ? "預設（自己信箱的收件匣"+(c.scan_sent_items?"及寄件備份":"")+"）"
+      : "預設（" + ((S.data.health.cat_folders||[]).length || "—") + " 個資料夾）";
+    return `<div class="row"><span class="meta" style="margin:0">目前：${cur}</span><button class="btn sm" onclick="loadFolders()">選擇資料夾…</button></div>`;
+  }
+  const defs = folderDefaults(kind);
+  const isChecked = f => sel.length ? sel.includes(f.path) : defs.includes(f.path);
+  const list = S.folderList.filter(f => kind==="scan" ? f.kind!=="task" : f.kind!=="sent");
+  const stores = [...new Set(list.map(f=>f.store))];
+  const attr = kind==="scan" ? "data-fp" : "data-cf";
+  const icon = f => f.kind==="sent"?"📤":f.kind==="inbox"?"📥":f.kind==="task"?"✅":"📁";
+  return stores.map(st=>{ const fs = list.filter(f=>f.store===st); const def = fs[0] && fs[0].default;
+    return `<div class="blk" style="margin-bottom:10px"><h4 style="margin-bottom:6px">${esc(st)}${def?' <span class="pill blue">你的信箱</span>':''}</h4>
+      ${fs.map(f=>`<label class="chk" style="padding:3px 0 3px ${f.depth*22}px"><input type="checkbox" ${attr}="${esc(f.path)}" ${isChecked(f)?"checked":""}> ${icon(f)} ${esc(f.name)}
+        ${f.count>=0?`<span class="meta" style="margin:0">（${Number(f.count).toLocaleString()}）</span>`:""}${f.kind==="sent"?' <span class="meta" style="margin:0">寄件備份</span>':''}
+        ${kind==="cat"&&f.kind==="sub"&&f.count>5000?'<span class="pill amber">大資料夾，讀取分類會令 Outlook 變慢</span>':''}</label>`).join("")}</div>`; }).join("")
+    + `<div class="meta">勾選後按「儲存設定」。</div>`;
+}
+async function loadFolders(){
+  $("#folderPick").innerHTML = $("#catFolderPick").innerHTML = `<span class="meta">正在讀取 Outlook 資料夾…</span>`;
+  try{ const r = await api("/api/folders"); S.folderList = r.folders; }
+  catch(e){ toast("未能讀取資料夾", e.message, "bad"); }
+  $("#folderPick").innerHTML = folderPickHtml("scan");
+  $("#catFolderPick").innerHTML = folderPickHtml("cat");
+}
+function pickedFolders(kind){
+  const attr = kind==="scan" ? "data-fp" : "data-cf";
+  const picked = [...document.querySelectorAll(`[${attr}]`)].filter(x=>x.checked).map(x=>x.getAttribute(attr));
+  const defs = folderDefaults(kind);
+  const same = picked.length===defs.length && picked.every(p=>defs.includes(p));
+  return same ? [] : picked;      // 與預設相同就保存為「預設」
+}
+const colRow = x => `<div class="col-row"><input class="inp" placeholder="名稱，例如 Sai Ho" value="${esc(x.name)}" oninput="checkDupSig()"><input class="inp" placeholder="例如 sho@premier-technology.com" value="${esc(x.email||"")}"><textarea class="inp" placeholder="例如 Thank you" oninput="checkDupSig()">${esc(x.signature||"")}</textarea><button class="btn sm danger" onclick="this.parentElement.remove();checkDupSig()">移除</button></div>`;
+const sigKey = v => String(v||"").split(/\n+/).map(l=>l.replace(/\u00a0/g," ").trim().toLowerCase().replace(/\s+/g," ").replace(/ and /g," & ").replace(/^[\s,.!;:，。！；：\-–—~*_]+|[\s,.!;:，。！；：\-–—~*_]+$/g,"")).filter(Boolean).join("\n");
+function checkDupSig(){
+  const rows = [...document.querySelectorAll("#colRows .col-row")];
+  const seen = {};
+  rows.forEach(r=>{ const k = sigKey(r.querySelector("textarea").value); const nm = r.querySelector("input").value.trim(); if(k) (seen[k] ||= []).push(nm); });
+  rows.forEach(r=>{ r.querySelectorAll(".dup").forEach(x=>x.remove());
+    const k = sigKey(r.querySelector("textarea").value); const others = k ? seen[k].filter(n=>n!==r.querySelector("input").value.trim()) : [];
+    if(others.length) r.insertAdjacentHTML("beforeend", `<div class="dup"><span class="pill amber">簽名與 ${esc(others.join("、"))} 相同，用 support@ 回覆時會未能確定是誰</span></div>`); });
+}
+async function testSig(){
+  try{ const r = await api("/api/test_signature",{text:$("#sigText").value, sender:$("#sigSender").value});
+    $("#sigRes").innerHTML = `<div class="sig-res">${r.replier?`辨認為 <b>${esc(r.replier)}</b>`:"<b>未能辨認</b>"}　<span class="meta" style="margin:0">${esc(r.how)} · 新回覆部分共 ${r.reply_lines} 行</span></div>`; }
+  catch(e){ toast("測試失敗", e.message, "bad"); }
+}
+function addCol(){ $("#colRows").insertAdjacentHTML("beforeend", colRow({name:"",email:""})); $("#colRows").lastElementChild.querySelector("input").focus(); }
+async function saveSettings(){
+  const body = {};
+  document.querySelectorAll("#page-settings [data-k]").forEach(el=>{ body[el.dataset.k] = el.type==="checkbox" ? el.checked : el.value; });
+  body.internal_domains = $("#s-dom").value.split(/[,\s]+/).filter(Boolean);
+  body.support_addresses = $("#s-sup").value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  if(S.folderList){ body.scan_folders = pickedFolders("scan"); body.category_folders = pickedFolders("cat"); }
+  body.freshdesk_url = $("#s-fd").value;
+  body.ignore_senders = $("#s-igs").value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  body.ignore_subjects = $("#s-igj").value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const catBoxes = [...document.querySelectorAll("#s-cats [data-cat]")];
+  if(catBoxes.length) body.hidden_categories = catBoxes.filter(x=>!x.checked).map(x=>x.dataset.cat);
+  body.colleagues = [...document.querySelectorAll("#colRows .col-row")].map(r=>{ const i=r.querySelectorAll("input"); return {name:i[0].value.trim(), email:i[1].value.trim(), signature:r.querySelector("textarea").value}; }).filter(x=>x.name);
+  try{ const r = await api("/api/config", body); S.data.config = r.config; renderSettings(); renderChrome(); toast("設定已儲存","","ok"); }
+  catch(e){ toast("未能儲存", e.message, "bad"); }
+}
+
+/* ================= 提醒 ================= */
+let AC = null;
+try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+function unlockAudio(){ if(AC && AC.state==="suspended") AC.resume().then(renderChrome); }
+document.addEventListener("pointerdown", ()=>{ if(AC && AC.state==="suspended") AC.resume().then(renderChrome); }, true);
+function beep(level){
+  if(!AC || S.mute || !cfg().sound) return;
+  const pattern = level>=3 ? [880,0,880,0,880,0,1175] : level===2 ? [740,0,988] : [660];
+  let t = AC.currentTime + 0.02;
+  pattern.forEach(f=>{ if(f){ const o=AC.createOscillator(), g=AC.createGain(); o.type="sine"; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+      o.connect(g).connect(AC.destination); o.start(t); o.stop(t+0.2); } t += 0.2; });
+}
+function notify(title, body, level, id){
+  if(!("Notification" in window) || Notification.permission!=="granted") return;
+  try{ const nt = new Notification(title,{body, tag:"pd-"+(id||"x")+"-"+level, requireInteraction:level>=2, silent:true});
+    nt.onclick = () => { window.focus(); if(id){ go("board"); openDrawer(id); } nt.close(); }; }catch(e){}
+}
+function askNotif(){ if(!("Notification" in window)) return toast("此瀏覽器不支援通知","","warn");
+  Notification.requestPermission().then(p=>{ renderChrome(); toast(p==="granted"?"已啟用桌面通知":"未能啟用通知", p==="granted"?"":"請在瀏覽器網址列左邊的設定允許通知", p==="granted"?"ok":"warn"); }); }
+function checkAlerts(){
+  if(!S.data) return;
+  const c = cfg(), reply = tickets().filter(t=>t.phase==="reply");
+  const fresh = [];
+  reply.forEach(t=>{ const prev = S.alerted[t.id]||0; if(t.level>prev){ S.alerted[t.id]=t.level; fresh.push(t); } });
+  // 新工單（0 級）也提醒一次
+  reply.forEach(t=>{ if(!(t.id in S.alerted)){ S.alerted[t.id]=0; if(!S.firstLoad) fresh.push(t); } });
+  if(!fresh.length) return;
+  if(S.firstLoad){
+    const hot = fresh.filter(t=>t.level>=1);
+    if(hot.length){ const lv = Math.max(...hot.map(t=>t.level));
+      toast(`${hot.length} 張工單需要盡快回覆`, hot.slice(0,3).map(t=>"#"+t.id+" "+(t.company||"")).join("、"), lv>=3?"bad":"warn");
+      notify(`PulseDesk：${hot.length} 張工單需要盡快回覆`, hot.slice(0,3).map(t=>"#"+t.id+" "+t.subject).join("\n"), lv, null); beep(lv); }
+    return;
+  }
+  const top = Math.max(...fresh.map(t=>t.level));
+  fresh.sort((a,b)=>b.level-a.level).slice(0,3).forEach(t=>{
+    const mins = Math.floor(t.elapsedSec/60);
+    const L = t.mail ? "客戶郵件" : "#"+t.id;
+    const title = t.level===0 ? (t.mail ? `新客戶郵件：${t.requester||t.requester_email||""}` : `新工單 #${t.id}`)
+      : t.level===3 ? `已超時！${L} 未首次回覆` : `${L} 已等 ${mins} 分鐘`;
+    const body = [t.company||t.requester, t.subject].filter(Boolean).join(" — ");
+    toast(title, body, t.level===3?"bad":t.level>=1?"warn":"", t.id);
+    notify(title, body + (t.level? `\n剩餘 ${Math.max(0,c.sla_minutes-mins)} 分鐘`:""), t.level, t.id);
+  });
+  beep(top===0 ? 1 : top);
+}
+setInterval(()=>{ // 已超時的工單每分鐘再響一次
+  if(!S.data) return; const b = tickets().filter(t=>t.phase==="reply" && t.level===3);
+  if(b.length) beep(3);
+}, 60000);
+function testAlert(){ beep(2); toast("測試提醒","如果你聽到聲音及看到這個通知，提醒功能正常。","warn"); notify("PulseDesk 測試提醒","提醒功能正常 ✓",1,null); }
+
+function toast(title, body="", kind="", id=null){
+  const el = document.createElement("div"); el.className = "toast "+kind;
+  el.innerHTML = `<div style="flex:1;${id?"cursor:pointer":""}"><b>${esc(title)}</b>${body?`<div style="opacity:.85;font-size:13px;margin-top:2px">${esc(body)}</div>`:""}</div><button title="關閉">✕</button>`;
+  el.querySelector("button").onclick = () => el.remove();
+  if(id) el.firstElementChild.onclick = () => { go("board"); openDrawer(id); el.remove(); };
+  $("#toasts").appendChild(el);
+  setTimeout(()=>el.remove(), kind==="bad" ? 20000 : 8000);
+  while($("#toasts").children.length>5) $("#toasts").firstElementChild.remove();
+}
+
+/* ================= 導航與啟動 ================= */
+const RENDER = {board:renderBoard, list:renderList, cats:renderCats, stats:renderStats, health:renderHealth, settings:renderSettings};
+function go(page){
+  S.page = page;
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on", b.dataset.page===page));
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("on", p.id==="page-"+page));
+  const [e,t,s] = PAGES[page]; $("#eyebrow").textContent=e; $("#pageTitle").textContent=t;
+  $("#pageSub").textContent = page==="board" ? `客戶郵件須在 ${cfg().sla_minutes} 分鐘內首次回覆，然後分派同事跟進` : s;
+  if(S.data) { RENDER[page](); renderChrome(); }
+  $("#main").scrollTop = 0;
+}
+async function doSync(full){
+  const b = $("#syncBtn");
+  if(b.disabled) return;
+  b.disabled = true; b.textContent = "⟳ 同步中…";
+  const done = () => { b.disabled = false; b.textContent = "⟳ 立即同步"; };
+  let r;
+  try{ r = await api("/api/sync",{full:!!full}); }
+  catch(e){ toast("同步失敗", e.message, "bad"); return done(); }
+  if(full){ toast("已開始完整重新掃描","會在背景進行，期間新郵件仍會即時處理"); await refresh(); return done(); }
+  if(r.busy){ toast(`正在進行${r.busy}`,"完成後會立即再檢查新郵件；期間新郵件仍會即時處理"); await refresh(); return done(); }
+  if(S.data && S.data.health.mode==="demo"){ await refresh(); toast("已同步","示範模式","ok"); return done(); }
+  // 等待這次同步完成（通常 1 秒內）
+  const t0 = Date.now();
+  while(Date.now() - t0 < 15000){
+    await new Promise(res=>setTimeout(res, 500));
+    await refresh();
+    const h = S.data && S.data.health;
+    if(h && (h.scans||0) > (r.scans||0) && !h.running){
+      toast("已同步", `找到 ${h.scanned||0} 封新郵件（${h.new_events||0} 封與工單有關），用時 ${h.duration??"—"} 秒`, "ok");
+      return done();
+    }
+  }
+  toast("同步仍在進行","Outlook 可能正忙，完成後畫面會自動更新","warn");
+  done();
+}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.page));
+$("#syncBtn").onclick = () => doSync(false);
+$("#muteBtn").onclick = () => { S.mute=!S.mute; try{ localStorage.setItem("pd-mute", S.mute?"1":"0"); }catch(e){} renderChrome(); toast(S.mute?"已靜音":"已開啟提示聲"); if(!S.mute){ unlockAudio(); beep(1);} };
+$("#notifBtn").onclick = askNotif;
+$("#scrim").onclick = closeDrawer;
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeDrawer(); });
+$("#quitBtn").onclick = async () => {
+  if(!confirm("結束 PulseDesk？\n結束後將不會再監控 Outlook 郵件，也不會有超時提醒。")) return;
+  try{ await api("/api/shutdown",{}); }catch(e){}
+  document.body.innerHTML = `<div style="margin:auto;text-align:center;color:#334155"><h2>PulseDesk 已結束</h2><p>可以關閉這個視窗。需要時再雙擊 PulseDesk 打開。</p></div>`;
+};
+
+refresh();
+setInterval(refresh, 3000);
+setInterval(tick, 1000);
+tick();
+</script>
+</body>
+</html>
